@@ -79,7 +79,7 @@ v.5.1.61.1以降より[SuperNewRoles](https://github.com/SuperNewRoles/SuperNewR
 -----------------------------------------------
 
 **【絶対に読むんだ】**<br>
-Town Of Host-Pの利用をもって"処罰に値する利用方法"内で記載されている<br>
+Town Of Host-Pkoの利用をもって"処罰に値する利用方法"内で記載されている<br>
 行動をしないと誓い,<br>
 処罰に値する利用を行った場合はいかなる場合でも処罰を受け入れるものとします。<br>
 
@@ -92,12 +92,12 @@ Modが使えなくなるよ!<br>
 その処罰に値する利用方法をしないよ！！<br>
 ってことです。
 
-## TownOfHost-Pってなんだい?
+## TownOfHost-Pkoってなんだい?
 他のAmongUsのModとはまた一味違った、斬新で独特な機能や役職が多いModです。<br>
 
 HostModなので部屋主のみModを導入すれば、<br>
 参加者はModを導入する必要もカスタムサーバー追加等の面倒な手間なしで<br>
-導入者が部屋を建て、その部屋に入ることでTownOfHost-Kを遊ぶことができます！<br>
+導入者が部屋を建て、その部屋に入ることでTownOfHost-Pkoを遊ぶことができます！<br>
 
 詳しい仕様などは[Wiki](https://github.com/KYMario/TownOfHost-K/wiki)やゲーム内確認できます<br>
 

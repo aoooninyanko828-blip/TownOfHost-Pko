@@ -1,4 +1,4 @@
-# Town Of Host-K
+# Town Of Host-Pko
 
 [English version here](https://github.com/KYMario/TownOfHost-K/blob/main/README-EN.md)<br>
 
@@ -12,9 +12,9 @@
 この Mod の問題などに関して公式に問い合わせないでください。<br>
 
 この Mod はTOHに役職や機能など追加したModです
-TOH-Kで起きたバグは本家や他MODには報告しないでまずはkに報告してください。<br>
+TOH-Pで起きたバグは本家や他MODには報告しないでまずはpに報告してください。<br>
 
-また、TOH-Kに関する質問、バグ報告は基本、[DiscordServer](https://discord.gg/5DPqH8seFq)でのみ受け付けております。<br>
+また、TOH-Pに関する質問、バグ報告は基本、[DiscordServer](https://discord.gg/5DPqH8seFq)でのみ受け付けております。<br>
 
 機能面などを開発者にDMで聞くのは超大迷惑なので基本おやめください。<br>
 
@@ -62,7 +62,7 @@ AmongUsバージョン : **17.0.0**~<br>
 <br>
 勧誘部屋に遭遇した場合は勧誘先に無闇に参加せずまずは開発者にお知らせください。厳正に対処いたします。<br>
 
-## TOH-Kでの処罰、利用不可について
+## TOH-Pでの処罰、利用不可について
 v.5.1.61.1以降より[SuperNewRoles](https://github.com/SuperNewRoles/SuperNewRoles/)様等一部のModに搭載されていた<br>
 ブラックリストをTown Of Host-Kでも適応するようにいたしました。<br>
 
@@ -79,7 +79,7 @@ v.5.1.61.1以降より[SuperNewRoles](https://github.com/SuperNewRoles/SuperNewR
 -----------------------------------------------
 
 **【絶対に読むんだ】**<br>
-Town Of Host-Kの利用をもって"処罰に値する利用方法"内で記載されている<br>
+Town Of Host-Pの利用をもって"処罰に値する利用方法"内で記載されている<br>
 行動をしないと誓い,<br>
 処罰に値する利用を行った場合はいかなる場合でも処罰を受け入れるものとします。<br>
 
@@ -92,7 +92,7 @@ Modが使えなくなるよ!<br>
 その処罰に値する利用方法をしないよ！！<br>
 ってことです。
 
-## TownOfHost-Kってなんだい?
+## TownOfHost-Pってなんだい?
 他のAmongUsのModとはまた一味違った、斬新で独特な機能や役職が多いModです。<br>
 
 HostModなので部屋主のみModを導入すれば、<br>

@@ -1,4 +1,4 @@
-# Town Of Host-Pko
+# Town Of Host-PKO
 
 ## この Mod について
 

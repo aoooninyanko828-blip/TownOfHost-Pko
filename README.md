@@ -1,20 +1,14 @@
 # Town Of Host-Pko
 
-[English version here](https://github.com/KYMario/TownOfHost-K/blob/main/README-EN.md)<br>
-
-[![Discord](./Images/TownOfHostK_readme.png)](https://discord.gg/5DPqH8seFq)
-
-<p align="center"><a href="https://github.com/KYMario/TownOfHost-K/releases/"><img src="https://badgen.net/github/release/KYMario/TownOfHost-K"></a></p>
-
 ## この Mod について
 
 この Mod は非公式のものであり、この Mod の開発に関して Among Us の開発元である"Innersloth"は一切関与していません。<br>
 この Mod の問題などに関して公式に問い合わせないでください。<br>
 
-この Mod はTOHに役職や機能など追加したModです
+この Mod はTOH、TOHKに役職や機能など追加したModです
 TOH-Pで起きたバグは本家や他MODには報告しないでまずはpに報告してください。<br>
 
-また、TOH-Pに関する質問、バグ報告は基本、[DiscordServer](https://discord.gg/5DPqH8seFq)でのみ受け付けております。<br>
+また、TOH-Pに関する質問、バグ報告は基本、[DiscordServer](https://discord.gg/PQ5CrVHC25)でのみ受け付けております。<br>
 
 機能面などを開発者にDMで聞くのは超大迷惑なので基本おやめください。<br>
 

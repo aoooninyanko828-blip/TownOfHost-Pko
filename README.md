@@ -6,7 +6,7 @@
 この Mod の問題などに関して公式に問い合わせないでください。<br>
 
 この Mod はTOH、TOHKに役職や機能など追加したModです
-TOH-Pで起きたバグは本家や他MODには報告しないでまずはpに報告してください。<br>
+TOH-Pで起きたバグは本家や他MODには報告しないでまずはTOH-Pに報告してください。<br>
 
 また、TOH-Pに関する質問、バグ報告は基本、[DiscordServer](https://discord.gg/PQ5CrVHC25)でのみ受け付けております。<br>
 

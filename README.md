@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Town Of Host-Pko
 
 [English version here](https://github.com/KYMario/TownOfHost-Pko/blob/main/README-EN.md)<br>
@@ -5,29 +6,46 @@
 [![Discord](./Images/TownOfHostPko_readme.png)](https://discord.gg/5DPqH8seFq)
 
 <p align="center"><a href="https://github.com/KYMario/TownOfHost-Pko/releases/"><img src="https://badgen.net/github/release/KYMario/TownOfHost-Pko"></a></p>
+=======
+# Town Of Host-PKO
+>>>>>>> 5f468e57dba12b88626d417f7dc213b40d9c484f
 
 ## この Mod について
 
 この Mod は非公式のものであり、この Mod の開発に関して Among Us の開発元である"Innersloth"は一切関与していません。<br>
 この Mod の問題などに関して公式に問い合わせないでください。<br>
 
+<<<<<<< HEAD
 この Mod はTOHに役職や機能など追加したModです
 TOH-Pで起きたバグは本家や他MODには報告しないでまずはkに報告してください。<br>
 
 また、TOH-Pに関する質問、バグ報告は基本、[DiscordServer](https://discord.gg/5DPqH8seFq)でのみ受け付けております。<br>
+=======
+この Mod はTOH、TOHKに役職や機能など追加したModです
+TOH-Pで起きたバグは本家や他MODには報告しないでまずはTOH-Pに報告してください。<br>
+
+また、TOH-Pに関する質問、バグ報告は基本、[DiscordServer](https://discord.gg/PQ5CrVHC25)でのみ受け付けております。<br>
+>>>>>>> 5f468e57dba12b88626d417f7dc213b40d9c484f
 
 機能面などを開発者にDMで聞くのは超大迷惑なので基本おやめください。<br>
 
 [本家TOHはこちら](https://github.com/tukasa0001/TownOfHost)<br>
+<<<<<<< HEAD
 
 ## [Wiki](https://github.com/KYMario/TownOfHost-Pko/wiki)もあるよ!
+=======
+[TOHKはこちら](https://github.com/KYMario/TownOfHost-K)<br>
+>>>>>>> 5f468e57dba12b88626d417f7dc213b40d9c484f
 
 ## リリース
 AmongUsバージョン : **17.0.0**~<br>
 
+<<<<<<< HEAD
 **最新版は[こちら](https://github.com/KYMario/TownOfHost-Pko/releases/latest)**<br>
 過去バージョンは[こちら](https://github.com/KYMario/TownOfHost-Pko/releases)<br>
 
+=======
+>>>>>>> 5f468e57dba12b88626d417f7dc213b40d9c484f
 ## 公開ルームについて
 > [!Note]
 > 現在のバージョンではAmongUs公式よりバニラサーバーで公開ルームを開くことができません。
@@ -55,13 +73,18 @@ AmongUsバージョン : **17.0.0**~<br>
 **禁止されない行為**
 > [**Note**]
 > - Discordや村のオープンチャットで非公開ルームのコードを伝え身内間でMod部屋を開催
+<<<<<<< HEAD
 > - Town Of Host-Pkoのマッチメイキングでの募集
+=======
+> - Town Of Host-PKOのマッチメイキングでの募集
+>>>>>>> 5f468e57dba12b88626d417f7dc213b40d9c484f
 > - Youtubeなどの配信サイトで上記の禁止行為に該当しない参加型/身内村配信<br>
 
 =>　要するに**Modだと認知していない野良のプレイヤーが交わる可能性がある**とアウトです。<br>
 <br>
 勧誘部屋に遭遇した場合は勧誘先に無闇に参加せずまずは開発者にお知らせください。厳正に対処いたします。<br>
 
+<<<<<<< HEAD
 ## TOH-Pでの処罰、利用不可について
 v.5.1.61.1以降より[SuperNewRoles](https://github.com/SuperNewRoles/SuperNewRoles/)様等一部のModに搭載されていた<br>
 ブラックリストをTown Of Host-Pkoでも適応するようにいたしました。<br>
@@ -75,6 +98,9 @@ v.5.1.61.1以降より[SuperNewRoles](https://github.com/SuperNewRoles/SuperNewR
 **ブラックリストを適応しているMod部屋に永久もしくは一時的に参加/主催することが出来ません。**<br>
 
 **★また、ブラックリスト追加により,ルーム作成にフレンドコードが必須となりました。ご了承ください。★**<br>
+=======
+**★ブラックリスト追加により,ルーム作成にフレンドコードが必須となりました。ご了承ください。★**<br>
+>>>>>>> 5f468e57dba12b88626d417f7dc213b40d9c484f
 
 -----------------------------------------------
 
@@ -99,6 +125,7 @@ HostModなので部屋主のみModを導入すれば、<br>
 参加者はModを導入する必要もカスタムサーバー追加等の面倒な手間なしで<br>
 導入者が部屋を建て、その部屋に入ることでTownOfHost-Pkoを遊ぶことができます！<br>
 
+<<<<<<< HEAD
 詳しい仕様などは[Wiki](https://github.com/KYMario/TownOfHost-Pko/wiki)やゲーム内確認できます<br>
 
 ## 役職について
@@ -150,11 +177,19 @@ HostModなので部屋主のみModを導入すれば、<br>
 **TownOfHost-Pkoのサポーター**<br>
 　りぃりぃ<br>
 　　[Twitter(X)](https://x.com/rixirixi0202)<br>
+=======
+**TownOfHost-PKOの開発者**<br>
+　しぇとこ<br>
+　　[Youtube](https://youtube.com/channel/UCM1gs89uwjOJF3EcVc1ZEOA?si=rAm5mh2eol6ycmO0)<br>
+>>>>>>> 5f468e57dba12b88626d417f7dc213b40d9c484f
 
 ※本家TownOfHost様の開発者はここでは省略させていただきます
 #### クレジット
 [Town Of Host](https://github.com/tukasa0001/TownOfHost)<br>
 　Fork元の本家です。<br>TownOfHost様にある機能はTownOfHost-Pkoでも大体実装されています<br>
+
+[Town Of Host_K](https://github.com/KYMario/TownOfHost-K)<br>
+　Fork元です。<br>TownOfHost_K様にある機能はTownOfHost-PKOでも大体実装されています<br>
 
 [Town Of Host_Y](https://github.com/Yumenopai/TownOfHost_Y)<br>
 　会議時の役職表示、会議拡張、ワーカホリック,属性名、一部役職を参考/移植させて頂きました！<br>
@@ -169,7 +204,7 @@ HostModなので部屋主のみModを導入すれば、<br>
 　10.24アプデの対応で参考にさせていただきました！<br>
 
 [SuperNewRoles](https://github.com/ykundesu/SuperNewRoles) <br>
-　天秤、ミーティングシェリフ、トイレファン、イビルギャンブラー、ペンギン、マッドスーサイドを移植/参考<br>
+　ダブルキラー、波動砲、波動砲ジャッカル、サンタ、村長、キューピッド、神、フリーター、陰陽師、マグロ、天秤、ミーティングシェリフ、トイレファン、イビルギャンブラー、ペンギン、マッドスーサイドを移植/参考<br>
 　ブラックリスト等や様々な部分を参考にさせて頂きました！<br>
 
 [TheOtherRoles](https://github.com/TheOtherRolesAU/TheOtherRoles)<br>

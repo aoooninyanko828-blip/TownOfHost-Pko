@@ -619,7 +619,7 @@ public sealed class HadouHo : RoleBase, IImpostor, IUsePhantomButton
 
         if (ShowBeamMark && seer.PlayerId != Player.PlayerId)
         {
-            return "<color=#ff0000>ビーム中/color>";
+            return "<color=#ff0000>ビーム中</color>";
         }
 
         return "";

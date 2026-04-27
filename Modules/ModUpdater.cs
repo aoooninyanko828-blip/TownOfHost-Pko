@@ -19,7 +19,7 @@ namespace TownOfHost
     [HarmonyPatch]
     public class ModUpdater
     {
-        private static readonly string URL = "https://api.github.com/repos/KYMario/TownOfHost-Pko";
+        private static readonly string URL = "https://api.github.com/repos/satokazoku/TownOfHost-Pko";
         public static bool hasUpdate = false;
         public static bool isBroken = false;
         public static bool isChecked = false;
@@ -55,7 +55,7 @@ namespace TownOfHost
         {
             //bool updateCheck = version != null && version.Update.Version != null;
             string url = beta ? Main.BetaBuildURL.Value : URL + "/releases" + (all ? "" : "/latest");
-            if (all) url = url + "?page=1";
+            if (all) url = url + "?page=1&per_page=100";
 
             //強制オプションが使用されていない & allオプションが使用されている & 既に取得済み
             if (!forced && all && releases.Any()) return true;
@@ -105,12 +105,27 @@ namespace TownOfHost
                             if (asset.Name == "TownOfHost-Pko.dll")
                                 release.DownloadUrl = asset.DownloadUrl;
                         }
-                        release.OpenURL = $"https://github.com/KYMario/TownOfHost-Pko/releases/tag/{tag}";
+                        release.OpenURL = $"https://github.com/satokazoku/TownOfHost-Pko/releases/tag/{tag}";
 
                         if (tag == null) continue;
-                        //動かないバージョンに切り替えれないようにするための応急手当。.31になる頃には消す。
-                        if (!tag.Contains($"{Main.ModVersion}") || tag.Contains(".30.1") || tag.Contains(".30.21") || tag.Contains(".30.22") || tag is "51.13.30") continue;//そのバージョンの奴じゃないなら除外
-                        if (tag.StartsWith("5.") || tag.StartsWith("S5.") || tag.StartsWith("s5.") || tag.Contains("519.") || tag.Contains("S519.")) continue;//今の表記は519とかなので5.1.x表示ならもう表示しない
+
+                        // v / S / s.
+                        var normalizedTag = tag.Trim();
+                        if (normalizedTag.StartsWith("v", StringComparison.OrdinalIgnoreCase))
+                            normalizedTag = normalizedTag[1..];
+                        if (normalizedTag.StartsWith("s", StringComparison.OrdinalIgnoreCase))
+                            normalizedTag = normalizedTag[1..];
+
+                        // 3.x / 1.x
+                        if ((!normalizedTag.Contains($"{Main.ModVersion}") && !normalizedTag.StartsWith("3.") && !normalizedTag.StartsWith("1."))
+                            || normalizedTag.Contains(".30.1")
+                            || normalizedTag.Contains(".30.21")
+                            || normalizedTag.Contains(".30.22")
+                            || normalizedTag is "51.13.30")
+                            continue;
+
+                        if (normalizedTag.StartsWith("5.") || normalizedTag.StartsWith("519."))
+                            continue;
 
                         snapshots.Add(release);
                     }

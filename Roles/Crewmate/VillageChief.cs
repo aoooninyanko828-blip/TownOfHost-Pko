@@ -182,13 +182,13 @@ public sealed class VillageChief : RoleBase, ISelfVoter
             if (target != null && target.IsAlive())
             {
                 float dist = Vector2.Distance(Player.GetTruePosition(), target.GetTruePosition());
-                if (dist <= 1.0f)
+                if (dist <= 1.5f)
                 {
                     nearTimer += Time.fixedDeltaTime;
 
-                    if (nearTimer >= 3f)
+                    if (nearTimer >= 1.5f)
                     {
-                        nearTimer = 3f;
+                        nearTimer = 1.5f;
 
                         if (isHost && appointCooldownTimer <= 0f)
                         {
@@ -278,7 +278,7 @@ public sealed class VillageChief : RoleBase, ISelfVoter
             return $"{prefix}<color=#f5a623>クールタイム明け待機中</color>";
         }
 
-        return $"{prefix}<color=#f5a623>{name}に3秒近づいて任命！</color>";
+        return $"{prefix}<color=#f5a623>{name}に1.5秒近づいて任命！</color>";
     }
 
     private void SyncStateRpc()

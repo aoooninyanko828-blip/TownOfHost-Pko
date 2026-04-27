@@ -329,17 +329,7 @@ namespace TownOfHost
                     + $"\n/cmd killlog(kl) - {GetString("Command.killlog")}"
                     + $"\n/cmd timer - {GetString("Command.timer")}";
             }
-            {
-                text += $"<size=80%></line-height>\n<#ADE0EE>【~~~~~~~{GetString("ModeratorCommand")}~~~~~~~】</color></size><line-height=1.3pic>"
-                + $"\n/cmd fe - {GetString("Command.fe")}"
-                + $"\n/cmd sw - {GetString("Command.Mkf")}"
-                + $"\n/cmd say - {GetString("Command.Msay")}"
-                + $"\n/cmd start - {GetString("Command.start")}"
-                + $"\n/cmd kf - {GetString("Command.kf")}"
-                + $"\n/cmd mf - {GetString("Command.mf")}"
-                + $"\n/cmd ban - {GetString("Command.ban")}"
-                + $"\n/cmd kick - {GetString("Command.kick")}";
-            }
+
             if (Main.UseYomiage.Value) text += $"\n/cmd voice - {GetString("Command.voice")}";
 
             SendMessage(text + tpinfo, to);

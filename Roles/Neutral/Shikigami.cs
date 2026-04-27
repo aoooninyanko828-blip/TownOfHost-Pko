@@ -11,7 +11,7 @@ using static TownOfHost.Translator;
 
 namespace TownOfHost.Roles.Neutral;
 
-public sealed class Shikigami : RoleBase, IUsePhantomButton, IKillFlashSeeable, IKiller
+public sealed class Shikigami : RoleBase, IUsePhantomButton, IKillFlashSeeable
 {
     public static readonly SimpleRoleInfo RoleInfo =
         SimpleRoleInfo.Create(
@@ -20,7 +20,7 @@ public sealed class Shikigami : RoleBase, IUsePhantomButton, IKillFlashSeeable, 
             CustomRoles.Shikigami,
             () => RoleTypes.Phantom,
             CustomRoleTypes.Neutral,
-            85100,
+            30100,
             SetupOptionItem,
             "sk",
             "#9b59b6",
@@ -35,6 +35,8 @@ public sealed class Shikigami : RoleBase, IUsePhantomButton, IKillFlashSeeable, 
     float suicideCooldownTimer;
     float unresolvedOwnerGraceTimer;
     bool petActionRegistered;
+    bool wasPetting;
+    float petInputDebounceTimer;
     readonly Dictionary<byte, Vector2> deadBodyPositions;
 
     enum RPCType
@@ -50,9 +52,11 @@ public sealed class Shikigami : RoleBase, IUsePhantomButton, IKillFlashSeeable, 
     {
         OwnerId = byte.MaxValue;
         isShifted = false;
-        suicideCooldownTimer = Onmyoji.GetShikigamiSuicideCooldown();
+        suicideCooldownTimer = 0f;
         unresolvedOwnerGraceTimer = 1.5f;
         petActionRegistered = false;
+        wasPetting = false;
+        petInputDebounceTimer = 0f;
         deadBodyPositions = new();
 
         EnsurePetActionRegistered();
@@ -68,19 +72,18 @@ public sealed class Shikigami : RoleBase, IUsePhantomButton, IKillFlashSeeable, 
         if (initialState)
         {
             isShifted = false;
-            suicideCooldownTimer = Onmyoji.GetShikigamiSuicideCooldown();
+            suicideCooldownTimer = 0f;
             OwnerId = byte.MaxValue;
             unresolvedOwnerGraceTimer = 1.5f;
             petActionRegistered = false;
+            wasPetting = false;
+            petInputDebounceTimer = 0f;
             deadBodyPositions.Clear();
         }
 
+        (this as IUsePhantomButton).Init(Player);
+        IUsePhantomButton.IPPlayerKillCooldown[Player.PlayerId] = 0f;
         Player.RpcResetAbilityCooldown();
-
-        if (Player.AmOwner && Is(Player))
-        {
-            Player.SetKillCooldown(Onmyoji.GetShikigamiSuicideCooldown());
-        }
 
         EnsurePetActionRegistered();
 
@@ -123,52 +126,8 @@ public sealed class Shikigami : RoleBase, IUsePhantomButton, IKillFlashSeeable, 
         AURoleOptions.PhantomCooldown = Onmyoji.GetShikigamiShiftCooldown();
     }
 
-    public override bool CanUseAbilityButton() => true;
-    bool IUsePhantomButton.IsPhantomRole => true;
-    bool IUsePhantomButton.IsresetAfterKill => false;
-
-    public override string GetAbilityButtonText() => GetString("ShikigamiTransformButtonText");
-    public override bool OverrideAbilityButton(out string text)
-    {
-        text = "ShikigamiTransformButtonText";
-        return true;
-    }
-
-    public float CalculateKillCooldown() => Onmyoji.GetShikigamiSuicideCooldown();
-    public bool CanUseKillButton() => false;
-    public bool CanUseSabotageButton() => false;
-    public bool CanUseImpostorVentButton() => false;
-
-    public void OnCheckMurderAsKiller(MurderInfo info)
-    {
-        info.DoKill = false;
-    }
-
-    public bool OverrideKillButtonText(out string text)
-    {
-        text = "Petで自決";
-        return true;
-    }
-
-    public bool OverrideKillButton(out string text)
-    {
-        text = "Shikigami_Suicide";
-        return true;
-    }
-
     public override void OnFixedUpdate(PlayerControl player)
     {
-        if (suicideCooldownTimer > 0f)
-        {
-            suicideCooldownTimer = Mathf.Max(0f, suicideCooldownTimer - Time.fixedDeltaTime);
-        }
-
-        if (player.AmOwner && Is(player))
-        {
-            Main.AllPlayerKillCooldown[Player.PlayerId] = Onmyoji.GetShikigamiSuicideCooldown();
-            Player.killTimer = suicideCooldownTimer;
-        }
-
         EnsurePetActionRegistered();
 
         if (OwnerId != byte.MaxValue)
@@ -189,6 +148,11 @@ public sealed class Shikigami : RoleBase, IUsePhantomButton, IKillFlashSeeable, 
             FollowOwnerDeath();
             return;
         }
+
+        HandlePetFallback();
+
+        if (suicideCooldownTimer > 0f)
+            suicideCooldownTimer = Mathf.Max(0f, suicideCooldownTimer - Time.fixedDeltaTime);
     }
 
     public bool? CheckKillFlash(MurderInfo info)
@@ -205,6 +169,7 @@ public sealed class Shikigami : RoleBase, IUsePhantomButton, IKillFlashSeeable, 
 
     void OnPet()
     {
+        if (!AmongUsClient.Instance.AmHost) return;
         if (!Player.IsAlive()) return;
 
         if (suicideCooldownTimer > 0f)
@@ -215,15 +180,45 @@ public sealed class Shikigami : RoleBase, IUsePhantomButton, IKillFlashSeeable, 
 
         suicideCooldownTimer = Onmyoji.GetShikigamiSuicideCooldown();
 
-        CustomRoleManager.OnCheckMurder(Player, Player, Player, Player, true, deathReason: CustomDeathReason.Suicide);
+        var state = PlayerState.GetByPlayerId(Player.PlayerId);
+        if (state != null) state.DeathReason = CustomDeathReason.Suicide;
+
+        Player.SetRealKiller(Player);
+        Player.RpcMurderPlayerV2(Player);
+    }
+
+    internal void HandlePetAction() => OnPet();
+
+    void HandlePetFallback()
+    {
+        if (GameStates.IsLobby || GameStates.IsMeeting)
+        {
+            wasPetting = Player.petting;
+            return;
+        }
+
+        if (petInputDebounceTimer > 0f)
+            petInputDebounceTimer = Mathf.Max(0f, petInputDebounceTimer - Time.fixedDeltaTime);
+
+        var pettingNow = Player.petting;
+        if (pettingNow && !wasPetting && petInputDebounceTimer <= 0f)
+        {
+            petInputDebounceTimer = 0.35f;
+            OnPet();
+        }
+
+        wasPetting = pettingNow;
     }
 
     void IUsePhantomButton.OnClick(ref bool AdjustKillCooldown, ref bool? ResetCooldown)
     {
         AdjustKillCooldown = false;
-        ResetCooldown = true;
+        ResetCooldown = false;
 
+        if (!AmongUsClient.Instance.AmHost) return;
         if (!Player.IsAlive()) return;
+        if (OwnerId == byte.MaxValue)
+            TryResolveOwnerFromOnmyoji();
 
         if (OwnerId == byte.MaxValue)
         {
@@ -249,20 +244,20 @@ public sealed class Shikigami : RoleBase, IUsePhantomButton, IKillFlashSeeable, 
             Player.RpcShapeshift(Player, false);
         }
 
+        ResetCooldown = true;
         SendStateRPC();
         UtilsNotifyRoles.NotifyRoles(OnlyMeName: true, SpecifySeer: Player);
     }
+
+    public bool UseOneclickButton => true;
+    public bool IsPhantomRole => true;
+    public bool IsresetAfterKill => false;
 
     public override void OnStartMeeting() => ClearDeadBodyArrows();
     public override void OnReportDeadBody(PlayerControl reporter, NetworkedPlayerInfo target) => ClearDeadBodyArrows();
 
     public override void AfterMeetingTasks()
     {
-        suicideCooldownTimer = Onmyoji.GetShikigamiSuicideCooldown();
-        if (Player.AmOwner && Is(Player))
-        {
-            Player.SetKillCooldown(Onmyoji.GetShikigamiSuicideCooldown());
-        }
         if (OwnerId == byte.MaxValue) return;
         TargetArrow.Add(Player.PlayerId, OwnerId);
     }
@@ -289,6 +284,7 @@ public sealed class Shikigami : RoleBase, IUsePhantomButton, IKillFlashSeeable, 
 
         var result = "";
 
+        // 陰陽師探知
         if (OwnerId != byte.MaxValue)
         {
             var owner = GetPlayerById(OwnerId);
@@ -296,6 +292,7 @@ public sealed class Shikigami : RoleBase, IUsePhantomButton, IKillFlashSeeable, 
                 result += $"<color=#9b59b6>{TargetArrow.GetArrows(seer, OwnerId)}</color>";
         }
 
+        // 死体探知（茶色）
         if (deadBodyPositions.Count > 0)
         {
             var arrows = "";
@@ -313,15 +310,9 @@ public sealed class Shikigami : RoleBase, IUsePhantomButton, IKillFlashSeeable, 
         seen ??= seer;
         if (isForMeeting || seer.PlayerId != seen.PlayerId || !Is(seer) || !Player.IsAlive()) return "";
 
-        string size = isForHud ? "" : "<size=60%>";
         var cd = Mathf.CeilToInt(Mathf.Max(0f, suicideCooldownTimer));
-
-        if (cd > 0)
-        {
-            return $"{size}<color=#9b59b6>Pet(ペット撫で): 自決 ({cd}s)</color>";
-        }
-        
-        return $"{size}<color=#9b59b6>Pet(ペット撫で): 自決可能</color>";
+        if (isForHud) return "";
+        return $"<size=60%>Pet:自決 ({cd}s)</size>";
     }
 
     void AddDeadBodyArrow(byte playerId, Vector2 pos)
@@ -419,6 +410,8 @@ public sealed class Shikigami : RoleBase, IUsePhantomButton, IKillFlashSeeable, 
                 break;
         }
     }
+
+    public override string GetAbilityButtonText() => GetString("ShikigamiTransformButtonText");
 
     void EnsurePetActionRegistered()
     {

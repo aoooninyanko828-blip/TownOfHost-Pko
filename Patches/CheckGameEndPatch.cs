@@ -72,6 +72,9 @@ namespace TownOfHost
 
             predicate.CheckForEndGame(out reason);
 
+            // 陰陽師を勝たせる
+            Onmyoji.TryTakeOverCrewWin(ref reason);
+
             if (CustomWinnerHolder.WinnerTeam is not CustomWinner.Default)
             {
                 PlayerCatch.AllPlayerControls.Do(pc => Camouflage.RpcSetSkin(pc, ForceRevert: true, RevertToDefault: true));
@@ -158,6 +161,19 @@ namespace TownOfHost
                 {
                     CurseMaker.CheckWin();
                     Fox.SFoxCheckWin(ref reason);
+                    Tuna.CheckWin(ref reason);
+                    Spelunker.CheckWin(ref reason);
+
+                    // ★ 神の勝利チェック
+                    foreach (var pc in PlayerCatch.AllAlivePlayerControls.Where(p => p.Is(CustomRoles.God)))
+                    {
+                        if (CustomWinnerHolder.ResetAndSetAndChWinner(CustomWinner.God, byte.MaxValue))
+                        {
+                            CustomWinnerHolder.WinnerIds.Add(pc.PlayerId);
+                            CustomWinnerHolder.CantWinPlayerIds.Remove(pc.PlayerId);
+                            reason = GameOverReason.ImpostorsByKill;
+                        }
+                    }
                 }
                 AsistingAngel.CheckAddWin();
                 foreach (var phantomthiefplayer in PlayerCatch.AllAlivePlayerControls.Where(pc => pc.GetCustomRole() is CustomRoles.PhantomThief))

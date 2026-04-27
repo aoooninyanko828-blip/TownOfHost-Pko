@@ -1,14 +1,13 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using HarmonyLib;
-using Hazel;
 using TMPro;
+using UnityEngine;
+
 using TownOfHost.Modules;
 using TownOfHost.Roles.Core;
 using TownOfHost.Templates;
-using UnityEngine;
 using static TownOfHost.Translator;
 
 namespace TownOfHost
@@ -19,9 +18,10 @@ namespace TownOfHost
         public static Dictionary<byte, string> SummaryText = new();
         public static string KillLog = "";
         public static string outputLog = "";
-
         public static void Postfix(AmongUsClient __instance, [HarmonyArgument(0)] ref EndGameResult endGameResult)
         {
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
             GameStates.canmusic = true;
             GameStates.InGame =
             GameStates.task =
@@ -45,14 +45,10 @@ namespace TownOfHost
             SummaryText = new();
             foreach (var id in PlayerState.AllPlayerStates.Keys)
                 SummaryText[id] = UtilsGameLog.SummaryTexts(id);
+            //if (!AmongUsClient.Instance.AmHost) return;
 
             var meg = GetString($"{(CustomRoles)CustomWinnerHolder.WinnerTeam}") + GetString("Team") + GetString("Win");
             var winnerColor = ((CustomRoles)CustomWinnerHolder.WinnerTeam).GetRoleInfo()?.RoleColor ?? UtilsRoleText.GetRoleColor((CustomRoles)CustomWinnerHolder.WinnerTeam);
-            if (UtilsGameLog.IsPavlovWinnerTeam())
-            {
-                meg = GetString("TeamPavlov") + GetString("Win");
-                winnerColor = UtilsRoleText.GetRoleColor(CustomRoles.PavlovDog);
-            }
 
             switch (CustomWinnerHolder.WinnerTeam)
             {
@@ -67,13 +63,13 @@ namespace TownOfHost
 
             var star = "★".Color(winnerColor);
             KillLog = $"{GetString("GameLog")}\n" + UtilsGameLog.gamelog + "\n\n<b>" + star + meg.Mark(winnerColor, false) + "</b>" + star;
-            outputLog = AmongUsClient.Instance.AmHost
-                ? "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n" + UtilsGameLog.gamelog + "\n\n<b>" + star + meg.Mark(winnerColor, false) + "</b>" + star
-                : "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n" + star + meg.Mark(winnerColor, false) + "/b" + star;
+            outputLog = AmongUsClient.Instance.AmHost ? "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n" + UtilsGameLog.gamelog + "\n\n<b>" + star + meg.Mark(winnerColor, false) + "</b>" + star
+            : "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n" + star + meg.Mark(winnerColor, false) + "/b" + star;
 
             LastGameSave.CreateIfNotExists();
             Main.Alltask = UtilsTask.AllTaskstext(false, false, false, false, false).RemoveHtmlTags();
 
+            //winnerListリセット
             EndGameResult.CachedWinners = new Il2CppSystem.Collections.Generic.List<CachedPlayerData>();
             var winner = new List<PlayerControl>();
             foreach (var pc in PlayerCatch.AllPlayerControls)
@@ -91,6 +87,7 @@ namespace TownOfHost
                 winner.Remove(pc);
             }
 
+            //HideAndSeek専用
             if (Options.CurrentGameMode == CustomGameMode.HideAndSeek &&
                 CustomWinnerHolder.WinnerTeam != CustomWinner.Draw && CustomWinnerHolder.WinnerTeam != CustomWinner.None)
             {
@@ -110,7 +107,11 @@ namespace TownOfHost
                     }
                     else if (role == CustomRoles.HASTroll && pc.Data.IsDead)
                     {
-                        winner = new() { pc };
+                        //トロールが殺されていれば単独勝ち
+                        winner = new()
+                        {
+                            pc
+                        };
                         break;
                     }
                     else if (role == CustomRoles.HASFox && CustomWinnerHolder.WinnerTeam != CustomWinner.HASTroll && !pc.Data.IsDead)
@@ -120,13 +121,14 @@ namespace TownOfHost
                     }
                 }
             }
-
             Main.winnerList = new();
             foreach (var pc in winner)
             {
                 if (CustomWinnerHolder.WinnerTeam is not CustomWinner.Draw && pc.Is(CustomRoles.GM)) continue;
+
                 if (CustomWinnerHolder.WinnerIds.Contains(pc.PlayerId) && Main.winnerList.Contains(pc.PlayerId)) continue;
                 if (CustomWinnerHolder.CantWinPlayerIds.Contains(pc.PlayerId)) continue;
+
                 EndGameResult.CachedWinners.Add(new CachedPlayerData(pc.Data));
                 Main.winnerList.Add(pc.PlayerId);
             }
@@ -138,60 +140,21 @@ namespace TownOfHost
                 Main.RealOptionsData.Restore(GameOptionsManager.Instance.CurrentGameOptions);
                 GameOptionsSender.AllSenders.Clear();
                 GameOptionsSender.AllSenders.Add(new NormalGameOptionsSender());
+                /* Send SyncSettings RPC */
             }
+            //オブジェクト破棄
             CustomRoleManager.Dispose();
+
             Camouflage.PlayerSkins.Clear();
             Statistics.Update();
             CheckGetNomalAchievement.OnGameEnd();
             Achievements.UpdateAchievement();
-
-            // ★ バニラクライアントに勝利結果と勝者リストをRPCで送信
-            if (AmongUsClient.Instance.AmHost)
-            {
-                SetEverythingUpPatch.VanillaResultText = meg;
-                SetEverythingUpPatch.VanillaWinnerNames = Main.winnerList
-                    .Select(id => Main.AllPlayerNames.GetValueOrDefault(id, ""))
-                    .Where(n => !string.IsNullOrWhiteSpace(n))
-                    .ToList();
-                SetEverythingUpPatch.VanillaLoserNames = PlayerState.AllPlayerStates.Keys
-                    .Where(id => !Main.winnerList.Contains(id))
-                    .Select(id => Main.AllPlayerNames.GetValueOrDefault(id, ""))
-                    .Where(n => !string.IsNullOrWhiteSpace(n))
-                    .ToList();
-
-                _ = new LateTask(() => RpcSendVanillaResult(meg), 3f, "SendVanillaResult", true);
-            }
-        }
-
-        static void RpcSendVanillaResult(string resultText)
-        {
-            if (!AmongUsClient.Instance.AmHost) return;
-
-            var winnerNames = SetEverythingUpPatch.VanillaWinnerNames;
-            var loserNames = SetEverythingUpPatch.VanillaLoserNames;
-
-            var sender = AmongUsClient.Instance.StartRpcImmediately(
-                PlayerControl.LocalPlayer.NetId,
-                (byte)CustomRPC.SyncModSystem,
-                SendOption.Reliable, -1);
-            sender.Write((int)RPC.ModSystem.SyncVanillaResult);
-            sender.Write(resultText);
-            sender.Write(winnerNames.Count);
-            foreach (var n in winnerNames) sender.Write(n);
-            sender.Write(loserNames.Count);
-            foreach (var n in loserNames) sender.Write(n);
-            AmongUsClient.Instance.FinishRpcImmediately(sender);
         }
     }
-
     [HarmonyPatch(typeof(EndGameManager), nameof(EndGameManager.SetEverythingUp))]
     class SetEverythingUpPatch
     {
         public static string LastWinsText = "";
-        public static string VanillaResultText = "";
-        public static List<string> VanillaWinnerNames = new();
-        public static List<string> VanillaLoserNames = new();
-
         private static TextMeshPro roleSummary;
         private static SimpleButton showHideButton;
         public static SimpleButton ScreenShotbutton;
@@ -199,19 +162,7 @@ namespace TownOfHost
 
         public static void Postfix(EndGameManager __instance)
         {
-            // ★ バニラクライアント（MODなし）の場合
-            if (!Main.playerVersion.ContainsKey(0))
-            {
-                ShowVanillaResult(__instance);
-                return;
-            }
-
-            // ★ MODクライアントでも非ホストかつVanillaResultTextがあれば補助表示
-            if (!AmongUsClient.Instance.AmHost && !string.IsNullOrEmpty(VanillaResultText))
-            {
-                ShowVanillaResult(__instance);
-            }
-
+            if (!Main.playerVersion.ContainsKey(0)) return;
             //#######################################
             //          ==勝利陣営表示==
             //#######################################
@@ -219,7 +170,7 @@ namespace TownOfHost
             var WinnerTextObject = UnityEngine.Object.Instantiate(__instance.WinText.gameObject);
             WinnerTextObject.transform.position = new(__instance.WinText.transform.position.x, __instance.WinText.transform.position.y - 0.5f, __instance.WinText.transform.position.z);
             WinnerTextObject.transform.localScale = new(0.6f, 0.6f, 0.6f);
-            var WinnerText = WinnerTextObject.GetComponent<TMPro.TextMeshPro>();
+            var WinnerText = WinnerTextObject.GetComponent<TMPro.TextMeshPro>(); //WinTextと同じ型のコンポーネントを取得
             WinnerText.fontSizeMin = 3f;
 
             string CustomWinnerText;
@@ -238,11 +189,15 @@ namespace TownOfHost
             LastWinsText = WinnerText.text;
             __instance.transform.SetLocalZ(20);
 
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
             //#######################################
             //           ==最終結果表示==
             //#######################################
 
-            var parent = TMPTemplate.Create("parent");
+            var parent = TMPTemplate.Create(
+                "parent");
+
             parent.alignment = TextAlignmentOptions.TopRight;
             parent.rectTransform.pivot = new(2.1f, -10.5f);
             var parentAspectPos = parent.gameObject.AddComponent<AspectPosition>();
@@ -254,7 +209,7 @@ namespace TownOfHost
             showHideButton = new SimpleButton(
                 parent.transform,
                 "ShowHideResultsButton",
-                new(-4.5f, 2.6f, -14f),
+                new(-4.5f, 2.6f, -14f),  // BackgroundLayer(z=-13)より手前
                 new(0, 136, 209, byte.MaxValue),
                 new(0, 196, byte.MaxValue, byte.MaxValue),
                 () =>
@@ -286,7 +241,10 @@ namespace TownOfHost
                 new(-3.5f, 2.6f, -14f),
                 new(0, 245, 185, byte.MaxValue),
                 new(66, 245, 185, byte.MaxValue),
-                () => { LastGameSave.SeveImage(); },
+                () =>
+                {
+                    LastGameSave.SeveImage();
+                },
                 Main.UseingJapanese ? "保存" : "Save")
             {
                 Scale = new(0.5f, 0.5f),
@@ -313,7 +271,6 @@ namespace TownOfHost
                     sb.Append($"\n　 ").Append(EndGamePatch.SummaryText.TryGetValue(id, out var name) ? name : "???");
                 }
             }
-
             roleSummary = TMPTemplate.Create(
                 "RoleSummaryText",
                 sb.ToString() + "<size=0>★</size>",
@@ -341,6 +298,7 @@ namespace TownOfHost
             modtextAspectPos.DistanceFromEdge = new(5f, 3f);
             modtext.gameObject.SetActive(true);
 
+            //if (Main.UseWebHook.Value) UtilsWebHook.WH_ShowLastResult();
             if (Main.IsAndroid()) return;
             if (Main.AutoSaveScreenShot.Value || Main.UseWebHook.Value)
             {
@@ -358,61 +316,9 @@ namespace TownOfHost
                     ScreenShotbutton.Button.transform.SetLocalY(2.6f);
                 }, 5f, "", true);
             }
-        }
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        // ★ バニラクライアント向け左上テキスト表示
-        public static void ShowVanillaResult(EndGameManager instance)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(VanillaResultText)) return;
-
-                var sb = new StringBuilder();
-                sb.Append($"<size=80%><color=#ffffff>ゲーム終了時の役職一覧:</color>\n");
-
-                foreach (var n in VanillaWinnerNames)
-                {
-                    sb.Append($"<color=#ffdd00>★ {n}</color>\n");
-                }
-                foreach (var n in VanillaLoserNames)
-                {
-                    sb.Append($"<color=#888888>　 {n}</color>\n");
-                }
-                sb.Append("</size>");
-
-                // ★ 左上にTMPオブジェクトを生成
-                var go = new GameObject("VanillaResultText");
-                go.transform.SetParent(instance.transform);
-                var tmp = go.AddComponent<TextMeshPro>();
-                tmp.text = sb.ToString();
-                tmp.fontSize = 1.8f;
-                tmp.alignment = TextAlignmentOptions.TopLeft;
-                tmp.color = Color.white;
-                tmp.enableWordWrapping = false;
-
-                var aspectPos = go.AddComponent<AspectPosition>();
-                aspectPos.Alignment = AspectPosition.EdgeAlignments.LeftTop;
-                aspectPos.DistanceFromEdge = new Vector3(0.2f, 0.2f, 0f);
-                aspectPos.AdjustPosition();
-            }
-            catch (Exception e)
-            {
-                Logger.Error($"ShowVanillaResult: {e}", "EndGame");
-            }
-        }
-
-        // ★ 非ホストMODクライアントがRPCを受け取った時
-        public static void OnReceiveVanillaResult(string resultText, List<string> winners, List<string> losers)
-        {
-            VanillaResultText = resultText;
-            VanillaWinnerNames = winners;
-            VanillaLoserNames = losers;
-
-            var egm = UnityEngine.Object.FindObjectOfType<EndGameManager>();
-            if (egm != null)
-            {
-                ShowVanillaResult(egm);
-            }
+            //Utils.ApplySuffix();
         }
     }
 
@@ -421,6 +327,7 @@ namespace TownOfHost
     {
         public static void Postfix(EndGameManager __instance, ref AudioSource source)
         {
+            //非クライアントの勝利の時アウトロ表示のため、クルー勝利の時もインポスター勝利音なってるから修正
             if (CustomWinnerHolder.WinnerTeam is CustomWinner.Crewmate or CustomWinner.TaskPlayerB)
             {
                 source.clip = __instance.CrewStinger;

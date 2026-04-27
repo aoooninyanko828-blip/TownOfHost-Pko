@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AmongUs.GameOptions;
+using Hazel;
 using UnityEngine;
 using TownOfHost.Modules;
 using TownOfHost.Roles.Core;
@@ -188,14 +189,23 @@ public sealed class Seer : RoleBase, IKillFlashSeeable
         if (!AmongUsClient.Instance.AmHost) return;
         if (!Player.IsAlive()) return;
 
-        // ★ 前のターンの霊魂を全部消す
         foreach (var soul in SoulObjects) soul?.Despawn();
         SoulObjects.Clear();
 
         if (PendingDeadBodies.Count == 0) return;
 
-        foreach (var (pos, colorId, playerName) in PendingDeadBodies)
-            SoulObjects.Add(new SoulObject(pos, colorId, playerName, Player));
+        // ★ 複数霊魂を0.6秒ずつずらしてスポーン（キュー競合防止）
+        for (int i = 0; i < PendingDeadBodies.Count; i++)
+        {
+            var (pos, colorId, playerName) = PendingDeadBodies[i];
+            int idx = i;
+            _ = new LateTask(() =>
+            {
+                if (!Player.IsAlive()) return;
+                var soul = new SoulObject(pos, colorId, playerName, Player);
+                SoulObjects.Add(soul);
+            }, idx * 0.6f, $"Seer.SpawnSoul{idx}", true);
+        }
 
         PendingDeadBodies.Clear();
     }
@@ -250,9 +260,6 @@ public sealed class Seer : RoleBase, IKillFlashSeeable
     }
 }
 
-// ======================================================
-// ★ 霊魂ダミーオブジェクト（新しいCustomNetObject APIに対応）
-// ======================================================
 public sealed class SoulObject : CustomNetObject
 {
     private static readonly string[] ColorCodes =
@@ -275,28 +282,23 @@ public sealed class SoulObject : CustomNetObject
         _playerName = playerName;
         _seer = seer;
         _spawnPos = position;
-
-        // ★ 新API: 位置だけ渡す
         CreateNetObject(position);
     }
 
-    // ★ スポーン後に外見・名前・位置・表示制限をまとめて設定
     protected override void OnCreated()
     {
         string color = _colorId >= 0 && _colorId < ColorCodes.Length
             ? ColorCodes[_colorId]
             : "#ffffff";
 
-        // ★ 死者のカラーで胴体を染める
-        SetAppearance(_colorId);
+        // ★ Shapeshiftを使わずRpcSetColorのみで色を設定（競合防止）
+        if (PlayerControl != null)
+            PlayerControl.RpcSetColor((byte)_colorId);
 
-        // ★ 名前を「霊魂\n(プレイヤー名)」にする
         SetName($"<color={color}>霊魂\n<size=70%>({_playerName})</size></color>");
-
-        // ★ 位置を固定
         SnapToPosition(_spawnPos);
 
-        // ★ シーア以外を非表示
+        // シーア以外を非表示
         foreach (var pc in AllPlayerControls)
         {
             if (_seer == null || pc.PlayerId != _seer.PlayerId)
@@ -304,6 +306,5 @@ public sealed class SoulObject : CustomNetObject
         }
     }
 
-    // ★ 霊魂は会議をまたいでも消えない
     public override void OnMeeting() { }
 }

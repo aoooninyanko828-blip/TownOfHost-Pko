@@ -7,6 +7,7 @@ namespace TownOfHost.Patches
     public static class AutoStartPatch
     {
         private static float timer = 0f;
+        private static int lastPlayerCount = 0; // 前のフレームの人数を記憶
 
         public static void Postfix()
         {
@@ -23,10 +24,24 @@ namespace TownOfHost.Patches
             if (!GameStates.IsLobby)
             {
                 timer = 0f;
+                lastPlayerCount = 0;
                 return;
             }
 
             int playerCount = PlayerControl.AllPlayerControls.Count;
+
+            // 途中で15人に達したときの猶予処理（20秒待つ）
+            if (Options.OptionAutoStartLimitAnotherSetting.GetBool() && lastPlayerCount != 15 && playerCount == 15)
+            {
+                float limit15 = Options.OptionAutoStartLimitAnother.GetFloat();
+
+                // 15人用の制限時間をすでに切っている、もしくは残り時間が20秒未満の場合、残り20秒になるようにタイマーを調整
+                if (timer > limit15 - 20f)
+                {
+                    timer = limit15 - 20f;
+                }
+            }
+            lastPlayerCount = playerCount;
 
             // タイマー進行
             timer += Time.deltaTime;

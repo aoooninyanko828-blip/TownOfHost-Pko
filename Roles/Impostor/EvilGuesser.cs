@@ -4,12 +4,12 @@ using HarmonyLib;
 
 using TownOfHost.Modules;
 using TownOfHost.Roles.Core;
-
+using TownOfHost.Roles.Core.Interfaces;
 using static TownOfHost.Translator;
 
 namespace TownOfHost.Roles.Impostor;
 
-public sealed class EvilGuesser : RoleBase
+public sealed class EvilGuesser : RoleBase, IImpostor
 {
     public static readonly SimpleRoleInfo RoleInfo =
         SimpleRoleInfo.Create(

@@ -199,7 +199,7 @@ public sealed class JackalHadouHo : RoleBase, ILNKiller, IUsePhantomButton, ISel
             if (status is VoteStatus.Self)
             {
                 skCandidateId = byte.MaxValue;
-                Utils.SendMessage("<color=#00b4eb>【サイドキック任命モード】</color>\n候補に投票 → 次ターン3秒近づいてSK\nスキップ → キャンセル", Player.PlayerId);
+                Utils.SendMessage("<color=#00b4eb>【サイドキック任命モード】</color>\n候補に投票 → 次ターン1.5秒近づいてSK\nスキップ → キャンセル", Player.PlayerId);
                 SetMode(Player, true);
                 return false;
             }
@@ -229,7 +229,7 @@ public sealed class JackalHadouHo : RoleBase, ILNKiller, IUsePhantomButton, ISel
                     return false;
                 }
                 skCandidateId = votedForId;
-                Utils.SendMessage($"<color=#00b4eb>【SK候補設定】</color>\n{UtilsName.GetPlayerColor(target, true)} を候補に設定しました。\n次ターン、3秒近づいてSK実行！", Player.PlayerId);
+                Utils.SendMessage($"<color=#00b4eb>【SK候補設定】</color>\n{UtilsName.GetPlayerColor(target, true)} を候補に設定しました。\n次ターン、1.5秒近づいてSK実行！", Player.PlayerId);
                 SetMode(Player, false);
                 return false;
             }
@@ -397,11 +397,11 @@ public sealed class JackalHadouHo : RoleBase, ILNKiller, IUsePhantomButton, ISel
                     else
                     {
                         float dist = Vector2.Distance(Player.GetTruePosition(), skTarget.GetTruePosition());
-                        if (dist <= 1.0f)
+                        if (dist <= 1.5f)
                         {
                             skNearTimer += Time.fixedDeltaTime;
                             UtilsNotifyRoles.NotifyRoles(OnlyMeName: true);
-                            if (skNearTimer >= 3f)
+                            if (skNearTimer >= 1.5f)
                             {
                                 DoSideKick(skTarget);
                                 skCandidateId = byte.MaxValue;
@@ -978,8 +978,8 @@ public sealed class JackalHadouHo : RoleBase, ILNKiller, IUsePhantomButton, ISel
                     return $"{size}<color=#00b4eb>{cdText} | 候補: {name}</color>";
                 if (!SkCanApproach)
                     return $"{size}<color=#00b4eb>待機中... | 候補: {name}</color>";
-                float progress = System.Math.Min(skNearTimer, 3f);
-                return $"{size}<color=#00b4eb>{name}に近づき中 {progress:F1}/3.0s</color>";
+                float progress = System.Math.Min(skNearTimer, 1.5f);
+                return $"{size}<color=#00b4eb>{name}に近づき中 {progress:F1}/1.5s</color>";
             }
 
             if (isForMeeting) return $"{size}<color=#00b4eb>自投票→SK候補を投票で指定</color>";

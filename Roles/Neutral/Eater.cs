@@ -623,7 +623,7 @@ public sealed class Eater : RoleBase, IKiller, IUsePhantomButton, IKillFlashSeea
         {
             arrows += GetArrow.GetArrows(seer, pos);
         }
-        return arrows == "" ? "" : $"<{RoleInfo.RoleColorCode}>{arrows}</color>";
+        return arrows == "" ? "" : $"<color={RoleInfo.RoleColorCode}>{arrows}</color>";
     }
 
     public override string GetProgressText(bool comms = false, bool gameLog = false)

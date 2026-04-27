@@ -169,7 +169,7 @@ public sealed class Onmyoji : RoleBase, ISelfVoter
             if (status is VoteStatus.Self)
             {
                 NextShikigamiCandidate = byte.MaxValue;
-                Utils.SendMessage("<color=#9b59b6>【式神任命モード】</color>\n候補に投票 → 次ターン3秒近づいて作成\nスキップ → キャンセル", Player.PlayerId);
+                Utils.SendMessage("<color=#9b59b6>【式神任命モード】</color>\n候補に投票 → 次ターン1.5秒近づいて作成\nスキップ → キャンセル", Player.PlayerId);
                 SetMode(Player, true);
                 SendRPC();
                 return false;
@@ -200,7 +200,7 @@ public sealed class Onmyoji : RoleBase, ISelfVoter
 
                 NextShikigamiCandidate = votedForId;
                 nearTimer = 0f;
-                Utils.SendMessage($"<color=#9b59b6>【式神候補設定】</color>\n{UtilsName.GetPlayerColor(target, true)} を候補に設定しました。\n次ターン、3秒近づいて式神作成！", Player.PlayerId);
+                Utils.SendMessage($"<color=#9b59b6>【式神候補設定】</color>\n{UtilsName.GetPlayerColor(target, true)} を候補に設定しました。\n次ターン、1.5秒近づいて式神作成！", Player.PlayerId);
                 SetMode(Player, false);
                 SendRPC();
                 return false;
@@ -273,11 +273,11 @@ public sealed class Onmyoji : RoleBase, ISelfVoter
                     else
                     {
                         float dist = Vector2.Distance(Player.GetTruePosition(), target.GetTruePosition());
-                        if (dist <= 1.0f)
+                        if (dist <= 1.5f)
                         {
                             nearTimer += Time.fixedDeltaTime;
 
-                            if (AmongUsClient.Instance.AmHost && nearTimer >= 3f)
+                            if (AmongUsClient.Instance.AmHost && nearTimer >= 1.5f)
                             {
                                 NextShikigamiCandidate = byte.MaxValue;
                                 nearTimer = 0f;
@@ -447,8 +447,8 @@ public sealed class Onmyoji : RoleBase, ISelfVoter
                     return $"{size}<color=#9b59b6>{cdText} | 候補: {name}</color>";
                 if (!SkCanApproach)
                     return $"{size}<color=#9b59b6>待機中... | 候補: {name}</color>";
-                float progress = System.Math.Min(nearTimer, 3f);
-                return $"{size}<color=#9b59b6>{name}に近づき中 {progress:F1}/3.0s</color>";
+                float progress = System.Math.Min(nearTimer, 1.5f);
+                return $"{size}<color=#9b59b6>{name}に近づき中 {progress:F1}/1.5s</color>";
             }
 
             if (isForMeeting) return $"{size}<color=#9b59b6>自投票→式神候補を投票で指定</color>";

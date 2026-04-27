@@ -20,9 +20,49 @@ public class ModNewsHistory
     public static void Init()
     {
         {
+            //リンクはこうやるらしい。<nobr><link=\"URL\">Text</nobr></link>
+            /*　　テンプレート
             {
                 var news = new ModNews
                 {
+                    Number = 100002,
+                    Title = "text",
+                    SubTitle = "text",
+                    ShortTitle = "◆TOH-P v0.0.0.0◆",
+                    Text = "text"
+                    + "text\n"
+                    + "text\n"
+                    + "text\n"
+                    + "text\n"
+                    + "text\n"
+                    + "textn"
+                    + "text\n"
+                    + "text\n"
+                    + "text\n"
+                    + "text\n"
+                    + "text\n"
+                    + "text",
+                    Date = "2026-4-20T00:00:00Z"
+                };
+                AllModNews.Add(news);
+            }*/
+            {
+                var news = new ModNews
+                {
+                    Number = 100062,
+                    Title = "<size=70%>このModに必要なWinnerのシステムを完全に理解したわけでもないのに\r\n「いらないよ」と言ってしまい勝利システムに不具合が発生していました。\r\n申し訳ございませんでした。</size>",
+                    SubTitle = "<color=#FF9631>Town Of Host-K v3.23.11.38</color>",
+                    ShortTitle = "<color=#FF9631>●TOH-Pko v3.23.11.38</color>",
+                    Text = "・波動砲のバグ修正\n"
+                    + "・自動スタートの調整\r\n"
+                    + "・skむずかしいと言われたので村長、陰陽師、波動砲ジャッカルのskの時間を3秒から1.5秒に短縮、範囲1.0→1.5に変更\n"
+                    + "\r\nバニラの試合結果の表示\r\n↑多分すぐ消す\r\n\n"
+                    + "・マグロの勝利できなかったバグの修正\n"
+                    + "・スペランカーの勝利できなかったバグの修正\n"
+                    + "・陰陽師バグ修正\n"
+                    + "・神バグ修正\n"
+                    ,
+                    Date = "2026-04-27"
                 };
                 AllModNews.Add(news);
             }
@@ -30,7 +70,7 @@ public class ModNewsHistory
         }
     }
     //ここもTownOfHost_Y様を参考に..!
-    public const string ModNewsURL = "https://raw.githubusercontent.com/KYMario/TownOfHost-Pko/refs/heads/main/ModNews.json";
+    public const string ModNewsURL = "";
     static bool downloaded = false;
 
     [HarmonyPatch(typeof(MainMenuManager), nameof(MainMenuManager.Start)), HarmonyPostfix]

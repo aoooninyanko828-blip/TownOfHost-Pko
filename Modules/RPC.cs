@@ -630,7 +630,6 @@ namespace TownOfHost
             SyncNextSpawn,
             SyncOneLove,
             SyncVoteResult,
-            SyncVanillaResult, // ★ 追加
             ShowIntro
         }
 
@@ -696,19 +695,6 @@ namespace TownOfHost
                         var result = new MeetingVoteManager.VoteResult(exileId, Istie);
                         AntiBlackout.voteresult = result;
                         MeetingVoteManager.Voteresult = reader.ReadString();
-                    }
-                    break;
-                // ★ バニラ向け試合結果受信
-                case ModSystem.SyncVanillaResult:
-                    {
-                        var vanillaResult = reader.ReadString();
-                        int winCount = reader.ReadInt32();
-                        var winners = new List<string>();
-                        for (int i = 0; i < winCount; i++) winners.Add(reader.ReadString());
-                        int loseCount = reader.ReadInt32();
-                        var losers = new List<string>();
-                        for (int i = 0; i < loseCount; i++) losers.Add(reader.ReadString());
-                        SetEverythingUpPatch.OnReceiveVanillaResult(vanillaResult, winners, losers);
                     }
                     break;
                 case ModSystem.ShowIntro:

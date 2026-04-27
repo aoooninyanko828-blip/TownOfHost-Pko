@@ -27,21 +27,22 @@ public class ModNewsHistory
                 {
                     Number = 100002,
                     Title = "text",
-                    SubTitle = "text",
-                    ShortTitle = "◆TOH-P v0.0.0.0◆",
-                    Text = "text"
-                    + "text\n"
-                    + "text\n"
-                    + "text\n"
-                    + "text\n"
-                    + "text\n"
-                    + "textn"
-                    + "text\n"
-                    + "text\n"
-                    + "text\n"
-                    + "text\n"
-                    + "text\n"
-                    + "text",
+                    SubTitle = "<color=#FF9631>Town Of Host-Pko v3.23.11.39</color>",
+                    ShortTitle = "<color=#FF9631>●TOH-Pko v3.23.11.39</color>",
+                    Text = "text\n"
+                    + "・text\n"
+                    + "・text\n"
+                    + "・text\n"
+                    + "・text\n"
+                    + "・text\n"
+                    + "・text\n"
+                    + "・text\n"
+                    + "・text\n"
+                    + "・text\n"
+                    + "・text\n"
+                    + "・text\n"
+                    + "・text"
+                    ,
                     Date = "2026-4-20T00:00:00Z"
                 };
                 AllModNews.Add(news);
@@ -49,9 +50,25 @@ public class ModNewsHistory
             {
                 var news = new ModNews
                 {
+                    Number = 100063,
+                    Title = "Pkoってぴけおって読むらしいぜ",
+                    SubTitle = "<color=#FF9631>Town Of Host-Pko v3.23.11.39</color>",
+                    ShortTitle = "<color=#FF9631>●TOH-Pko v3.23.11.39</color>",
+                    Text = "・チェイサーの追加 From:TownOfHost_Y\n"
+                    + "・/cmd hができないバグの修正(ホストも)\n"
+                    + "・ダブルキラーのバグ修正...?\n"
+                    + "・波動砲、波動砲ジャッカルの軽量化...?(気持ち程度かもしんねー\n"
+                    ,
+                    Date = "2026-4-28"
+                };
+                AllModNews.Add(news);
+            }
+            {
+                var news = new ModNews
+                {
                     Number = 100062,
-                    Title = "<size=70%>このModに必要なWinnerのシステムを完全に理解したわけでもないのに\r\n「いらないよ」と言ってしまい勝利システムに不具合が発生していました。\r\n申し訳ございませんでした。</size>",
-                    SubTitle = "<color=#FF9631>Town Of Host-K v3.23.11.38</color>",
+                    Title = "<size=70%>このModに必要なWinnerのシステムを完全に理解したわけでもないのに\r\n「いらないよ」と言ってしまい勝利システムに不具合が発生していました。\r\n申し訳ございませんでした。byみっちー</size>",
+                    SubTitle = "<color=#FF9631>Town Of Host-Pko v3.23.11.38</color>",
                     ShortTitle = "<color=#FF9631>●TOH-Pko v3.23.11.38</color>",
                     Text = "・波動砲のバグ修正\n"
                     + "・自動スタートの調整\r\n"
@@ -61,6 +78,7 @@ public class ModNewsHistory
                     + "・スペランカーの勝利できなかったバグの修正\n"
                     + "・陰陽師バグ修正\n"
                     + "・神バグ修正\n"
+                    + "・イビルゲッサーバグ修正(一部)n"
                     ,
                     Date = "2026-04-27"
                 };

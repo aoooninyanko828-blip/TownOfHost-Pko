@@ -81,6 +81,7 @@
 "EvilBlender","EvilBlender","イビルブレンダー"
 "EvilGuesser","EvilGuesser","イビルゲッサー"
 "Reverser","Reverser","リバーサー"
+"Chaser","Chaser","チェイサー","","","",""
 "#ImpostorName"
 
 "# マッドメイト系役職"
@@ -403,6 +404,7 @@
 "EvilBlenderInfo","Chemistry solves everything","化学は裏切らない"
 "UnFortunerInfo","Happiness for Only Impostors","幸せになりたい..."
 "ReverserInfo","Reverse everyone's controls","全員の操作を反転させよう"
+"ChaserInfo","I will chase you to the ends of the earth.","地の果てまで追いかける…","","","",""
 "#ImpostorInfo"
 
 "# マッドメイト系役職"
@@ -683,6 +685,7 @@
 "EvilBlenderInfoLong","An Impostor who can activate a special sabotage only once.\nIf no sabotage other than door closing is active, pressing the Phantom button will fill the entire map with Poison Gas.\nWhen the gas is released, all living players must reach the designated room within a certain time or they will die (cause of death: Suffocation).\nWhile Poison Gas is active, the emergency button cannot be used and no sabotages can be triggered.","1度のみ特殊サボタージュを発動することができるインポスター。\nドア閉め以外のサボタージュが発動されていない時にファントムボタンを押すと\n「毒ガス」をマップ全体に充満させることができる。\n毒ガスが発生した時、生存しているプレイヤーは一定時間以内に指定された部屋へ行かないと死亡する。(死因:窒息)\n毒ガス発生中は緊急ボタンは使用できず、サボタージュも発動できない。"
 "UnFortunerInfoLong","An Impostor who can grant attributes.\nThe kill target at the moment the Phantom button is used will receive a random attribute at the start of the next meeting.\n\nIf 'Grant one attribute per use' is ON, or if no overwrite attributes are configured, one random attribute is applied.\nOtherwise, all configured attributes are applied.","属性を付与することのできるインポスター。\nファントムボタンを使用した時のキルターゲットに\n次会議開始時、ランダムで属性を付与する。\n\n'1回使用で属性を1つ渡す'がON、または上書きする付与属性が未設定の場合は、ランダムで1つ。\nそれ以外の場合は設定した属性が全て付与される。"
 "ReverserInfoLong","A single click button can reverse the controls of all players for a certain period of time.","ワンクリックボタンで全てのプレイヤーの操作を一定時間反転できる。"
+"ChaserInfoLong","A role that allows you to warp by transforming.\nDetects a nearby vent with a transformed target and warps there.\nYou can also return to the original position in the settings.\nIt would be funny if there were other players in front of you.\n","近くに移動したいターゲットをシェイプボタンで選択すると、そのターゲットから一番近いベントにワープすることができる。ワープ時、他視点からチェイサーはそのベントから出てきたように見える(ベント開閉あり)。\n元の位置に戻る設定がONの時、設定時間後に元居た場所の近くのベントに戻る。"
 "#ImpostorInfoLong"
 
 "# マッドメイト系役職"
@@ -1553,6 +1556,10 @@
 "ArcherArrowSpeed","Arrow Speed","矢の速度"
 "EvilBlenderSabotageLimittime","Sabotage limit","窒息死するまでの時間"
 "ReverserDuration","Reverser Duration","効果時間"
+"ChaserChaseCooldown","Chase Cooldown","チェイスクールダウン","追逐冷却时间","追逐冷卻時間","Перезарядка погони","Tempo de espera da perseguição"
+"ChaserChaseMaxCount","Chase Max Count","チェイスの最大回数",
+"ChaserReturnPosition","Return Position After Chase","チェイス後、元の位置に戻る","返回原位","返回原位","Вернуться в исходное положение","Retornar à posição original"
+"ChaserPositionTime","Time to return to original position","元の位置に戻るまでの時間","几秒钟后返回原来位置","多少秒後它會回到原來的位置","Через сколько секунд он вернется в исходное положение","Depois de quantos segundos ele retornará à sua posição original"
 
 "## MadMate Role Setting"
 "MadmateOption","MadMate Options","マッドメイト系役職の設定"

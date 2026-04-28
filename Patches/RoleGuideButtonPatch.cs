@@ -26,7 +26,6 @@ public static class RoleGuideButtonPatch
             var tex = new Texture2D(1, 1);
             tex.SetPixel(0, 0, Color.white);
             tex.Apply();
-            // 背景が米粒にならないよう 1f に設定
             _squareSprite = Sprite.Create(tex, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f), 1f);
             return _squareSprite;
         }
@@ -60,8 +59,7 @@ public static class RoleGuideButtonPatch
 
             var settingsPos = settingsButton.transform.localPosition;
             btnObj.transform.localPosition = new Vector3(settingsPos.x - 9.0f, settingsPos.y, settingsPos.z);
-            var originalScale = new Vector3(0.45f, 0.45f, 1f);
-            btnObj.transform.localScale = originalScale;
+            btnObj.transform.localScale = new Vector3(0.45f, 0.45f, 1f);
 
             var sr = btnObj.AddComponent<SpriteRenderer>();
             sr.color = Color.white;
@@ -75,14 +73,7 @@ public static class RoleGuideButtonPatch
             btn.Colliders = new Collider2D[] { col };
             btn.OnClick = new Button.ButtonClickedEvent();
 
-            // クリック時の「押した感」アニメーション
-            btn.OnClick.AddListener((UnityEngine.Events.UnityAction)(() => {
-                btnObj.transform.localScale = originalScale * 0.9f;
-                _ = new LateTask(() => {
-                    if (btnObj) btnObj.transform.localScale = originalScale;
-                    TogglePanel();
-                }, 0.05f, "RoleGuide.ClickAnim", true);
-            }));
+            btn.OnClick.AddListener((UnityEngine.Events.UnityAction)TogglePanel);
 
             btn.OnMouseOver = new UnityEngine.Events.UnityEvent();
             btn.OnMouseOver.AddListener((UnityEngine.Events.UnityAction)(() => { if (sr) sr.color = new Color(0.8f, 0.9f, 1f); }));
@@ -165,7 +156,6 @@ public static class RoleGuideButtonPatch
         guidePanel.transform.localScale = Vector3.one;
         guidePanel.layer = 5;
 
-        // ★パネル全体のサイズと位置を黄金比に再計算
         MakeSprite(guidePanel, "BG", Vector3.zero, new Vector3(8.6f, 5.6f, 1f),
             new Color(0.05f, 0.05f, 0.1f, 0.96f), 4);
 
@@ -173,7 +163,7 @@ public static class RoleGuideButtonPatch
             new Color(0.15f, 0.2f, 0.35f, 1f), 5);
 
         MakeText(guidePanel, "Title", new Vector3(0f, 2.45f, -1f),
-            "<color=#ffffff>役職ガイド</color>", 2.6f, TextAlignmentOptions.Center, null, new Vector2(0.5f, 0.5f));
+            "<color=#ffffff>役職ガイド</color>", 2.6f, TextAlignmentOptions.Center);
 
         MakeSprite(guidePanel, "LeftBG", new Vector3(-3.3f, -0.15f, -0.5f),
             new Vector3(2.0f, 4.85f, 1f), new Color(0.1f, 0.12f, 0.25f, 1f), 5);
@@ -211,30 +201,34 @@ public static class RoleGuideButtonPatch
     private static void BuildMyRoleContent()
     {
         var localPc = PlayerControl.LocalPlayer;
-        if (localPc == null) return;
+        if (localPc == null) { MakeText(guidePanel, "t", Vector3.zero, "情報なし", 1.9f); return; }
 
         var role = localPc.GetCustomRole();
-        string roleColorStr = ColorUtility.ToHtmlStringRGBA(localPc.GetRoleColor());
+        var roleClass = localPc.GetRoleClass();
+
+        if (localPc.Is(CustomRoles.Amnesia))
+            role = localPc.Is(CustomRoleTypes.Crewmate) ? CustomRoles.Crewmate : CustomRoles.Impostor;
+        if (localPc.GetMisidentify(out var missrole)) role = missrole;
+        if (role is CustomRoles.Amnesiac && roleClass is Amnesiac amnesiac && !amnesiac.Realized)
+            role = Amnesiac.IsWolf ? CustomRoles.WolfBoy : CustomRoles.Sheriff;
 
         string content;
+        string roleColorStr = ColorUtility.ToHtmlStringRGBA(localPc.GetRoleColor());
+
         if (role is CustomRoles.Crewmate or CustomRoles.Impostor)
         {
-            content = $"<size=150%><color=#{roleColorStr}>{GetString(role.ToString())}</color></size>\n\n" +
-                      $"<size=85%><color=#ffffff>{localPc.GetRoleDesc(true)}</color></size>";
+            content = $"<line-height=2.0pic><size=130%><color=#{roleColorStr}>{GetString(role.ToString())}</color></size>\n" +
+                      $"<size=70%><line-height=1.8pic><color=#ffffff>{localPc.GetRoleDesc(true)}</color></size>";
         }
         else
         {
             content = role.GetRoleInfo()?.Description?.FullFormatHelp
-                ?? $"<size=150%><color=#{roleColorStr}>{GetString(role.ToString())}</color></size>\n\n" +
-                   $"<size=85%><color=#ffffff>{localPc.GetRoleDesc(true)}</color></size>";
+                ?? $"<line-height=2.0pic><size=130%><color=#{roleColorStr}>{GetString(role.ToString())}</color></size>\n" +
+                   $"<size=70%><line-height=1.8pic><color=#ffffff>{localPc.GetRoleDesc(true)}</color></size>";
         }
 
-        // ★超重要：元のテキストに埋め込まれている「中央揃え」の命令を強制的に「左揃え」に書き換える！
-        content = content.Replace("<align=center>", "<align=left>");
-
-        // ★文字を大きく（2.0f）し、右側の広いパネルの左端（-2.0f）から綺麗に開始させる
-        MakeText(guidePanel, "MyRole", new Vector3(-2.0f, 2.0f, -1f), content, 2.0f,
-            TextAlignmentOptions.TopLeft, new Vector2(6.0f, 4.6f), new Vector2(0f, 1f));
+        MakeText(guidePanel, "MyRole", new Vector3(-0.3f, 2.0f, -1f), content, 1.75f,
+            TextAlignmentOptions.Top, new Vector2(5.8f, 4.6f));
     }
 
     private static void BuildRoleListContent()
@@ -243,7 +237,10 @@ public static class RoleGuideButtonPatch
         try
         {
             System.Reflection.MethodInfo targetMethod = null;
+            object[] invokeArgs = null;
+
             var typesToSearch = new System.Type[] { typeof(UtilsRoleText), typeof(Utils) };
+
             foreach (var t in typesToSearch)
             {
                 var methods = t.GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
@@ -251,26 +248,43 @@ public static class RoleGuideButtonPatch
                 {
                     if (m.ReturnType == typeof(string) && m.Name.Contains("Role") && !m.Name.Contains("Show"))
                     {
-                        targetMethod = m; break;
+                        var parameters = m.GetParameters();
+                        if (parameters.Length == 1 && parameters[0].ParameterType == typeof(byte))
+                        {
+                            targetMethod = m;
+                            invokeArgs = new object[] { PlayerControl.LocalPlayer.PlayerId };
+                            break;
+                        }
+                        else if (parameters.Length == 0)
+                        {
+                            targetMethod = m;
+                            invokeArgs = null;
+                            break;
+                        }
                     }
                 }
                 if (targetMethod != null) break;
             }
+
             if (targetMethod != null)
             {
-                object[] args = targetMethod.GetParameters().Length == 1 ? new object[] { PlayerControl.LocalPlayer.PlayerId } : null;
-                content = (string)targetMethod.Invoke(null, args);
+                content = (string)targetMethod.Invoke(null, invokeArgs);
+            }
+            else
+            {
+                content = "配役情報を取得するメソッドが見つかりません。\n<color=#00b4eb>チャットで /roles と入力して確認してください。</color>";
             }
         }
-        catch { }
+        catch
+        {
+            content = "<color=#888888>配役情報の取得中にエラーが発生しました</color>";
+        }
 
-        if (string.IsNullOrEmpty(content)) content = "<color=#888888>配役情報なし</color>";
+        if (string.IsNullOrEmpty(content))
+            content = "<color=#888888>配役情報なし</color>";
 
-        // ★配役情報も同様に強制左揃え
-        content = content.Replace("<align=center>", "<align=left>");
-
-        MakeText(guidePanel, "RoleList", new Vector3(-2.0f, 2.0f, -1f), content, 1.8f,
-            TextAlignmentOptions.TopLeft, new Vector2(6.0f, 4.6f), new Vector2(0f, 1f));
+        MakeText(guidePanel, "RoleList", new Vector3(-0.3f, 2.0f, -1f), content, 1.65f,
+            TextAlignmentOptions.Top, new Vector2(5.8f, 4.6f));
     }
 
     private static void MakeSprite(GameObject parent, string name, Vector3 pos, Vector3 scale, Color color, int order = 5)
@@ -287,9 +301,8 @@ public static class RoleGuideButtonPatch
         sr.sortingOrder = order;
     }
 
-    // ★ピボット（基準点）を自由に設定できるように引数を追加
     private static TextMeshPro MakeText(GameObject parent, string name, Vector3 pos, string text,
-        float size, TextAlignmentOptions align = TextAlignmentOptions.TopLeft, Vector2? rectSize = null, Vector2? pivot = null)
+        float size, TextAlignmentOptions align = TextAlignmentOptions.TopLeft, Vector2? rectSize = null)
     {
         var obj = new GameObject(name);
         obj.transform.SetParent(parent.transform);
@@ -303,14 +316,23 @@ public static class RoleGuideButtonPatch
         tmp.color = Color.white;
         tmp.sortingOrder = 11;
         tmp.enableWordWrapping = true;
+
+        // ★ここで一括して「太字(Bold)」と「リッチテキスト(色反映)」をオンにする！
         tmp.richText = true;
         tmp.fontStyle = FontStyles.Bold;
 
-        if (rectSize.HasValue) tmp.rectTransform.sizeDelta = rectSize.Value;
-
-        // ピボットの指定があれば適用し、なければ中央(0.5, 0.5)にする
-        tmp.rectTransform.pivot = pivot ?? new Vector2(0.5f, 0.5f);
-
+        if (rectSize.HasValue)
+        {
+            tmp.rectTransform.sizeDelta = rectSize.Value;
+            if (align == TextAlignmentOptions.Top || align == TextAlignmentOptions.Center)
+            {
+                tmp.rectTransform.pivot = new Vector2(0.5f, 1f);
+            }
+            else
+            {
+                tmp.rectTransform.pivot = new Vector2(0f, 1f);
+            }
+        }
         return tmp;
     }
 
@@ -323,11 +345,13 @@ public static class RoleGuideButtonPatch
         obj.transform.localScale = Vector3.one;
         obj.layer = 5;
 
-        Color bgColor = isSelected ? new Color(accentColor.r * 0.35f, accentColor.g * 0.35f, accentColor.b * 0.35f, 0.95f) : new Color(0.12f, 0.15f, 0.30f, 0.95f);
+        Color bgColor = isSelected
+            ? new Color(accentColor.r * 0.35f, accentColor.g * 0.35f, accentColor.b * 0.35f, 0.95f)
+            : new Color(0.12f, 0.15f, 0.30f, 0.95f);
         var bg = new GameObject("BG");
         bg.transform.SetParent(obj.transform);
         bg.transform.localPosition = Vector3.zero;
-        bg.transform.localScale = new Vector3(1.8f, 0.75f, 1f); // タブ幅を少し広げた
+        bg.transform.localScale = new Vector3(1.7f, 0.75f, 1f);
         bg.layer = 5;
         var bgSr = bg.AddComponent<SpriteRenderer>();
         bgSr.sprite = SquareSprite;
@@ -337,7 +361,7 @@ public static class RoleGuideButtonPatch
 
         var bar = new GameObject("Bar");
         bar.transform.SetParent(obj.transform);
-        bar.transform.localPosition = new Vector3(-0.85f, 0f, -0.1f); // バーの位置を左端にピタッと合わせる
+        bar.transform.localPosition = new Vector3(-0.77f, 0f, -0.1f);
         bar.transform.localScale = new Vector3(0.055f, 0.75f, 1f);
         bar.layer = 5;
         var barSr = bar.AddComponent<SpriteRenderer>();
@@ -346,29 +370,66 @@ public static class RoleGuideButtonPatch
         barSr.material = new Material(Shader.Find("Sprites/Default"));
         barSr.sortingOrder = 7;
 
-        // ★タブの文字が下にズレていたバグを修正（Y座標を 0f に）
-        var tmp = MakeText(obj, "Lbl", new Vector3(0f, 0f, -0.2f), label, 1.9f, TextAlignmentOptions.Center, null, new Vector2(0.5f, 0.5f));
+        var tmp = MakeText(obj, "Lbl", new Vector3(0.05f, -0.3f, -0.2f), label, 1.9f,
+            TextAlignmentOptions.Center);
         tmp.color = isSelected ? Color.white : new Color(0.7f, 0.7f, 0.7f);
 
         var col = obj.AddComponent<BoxCollider2D>();
-        col.size = new Vector2(1.8f, 0.75f);
+        col.size = new Vector2(1.7f, 0.75f);
+
         var btn = obj.AddComponent<PassiveButton>();
         btn.Colliders = new Collider2D[] { col };
+        btn.OnClick = new Button.ButtonClickedEvent();
         btn.OnClick.AddListener((UnityEngine.Events.UnityAction)onClick);
-        btn.OnMouseOver.AddListener((UnityEngine.Events.UnityAction)(() => { if (!isSelected && bgSr) bgSr.color = new Color(0.2f, 0.25f, 0.40f, 0.95f); }));
-        btn.OnMouseOut.AddListener((UnityEngine.Events.UnityAction)(() => { if (!isSelected && bgSr) bgSr.color = bgColor; }));
+        btn.OnMouseOver = new UnityEngine.Events.UnityEvent();
+        btn.OnMouseOver.AddListener((UnityEngine.Events.UnityAction)(() =>
+        {
+            if (!isSelected && bgSr) bgSr.color = new Color(0.2f, 0.25f, 0.40f, 0.95f);
+        }));
+        btn.OnMouseOut = new UnityEngine.Events.UnityEvent();
+        btn.OnMouseOut.AddListener((UnityEngine.Events.UnityAction)(() =>
+        {
+            if (!isSelected && bgSr) bgSr.color = bgColor;
+        }));
     }
 }
 
 // ＝＝＝ 自動クローズ用のパッチ ＝＝＝
+
 [HarmonyPatch(typeof(HudManager), nameof(HudManager.Update))]
-public static class AutoClosePanelPatch { public static void Postfix() { if (RoleGuideButtonPatch.isPanelOpen && Minigame.Instance != null) RoleGuideButtonPatch.ClosePanel(); } }
+public static class AutoClosePanelPatch
+{
+    public static void Postfix()
+    {
+        if (!RoleGuideButtonPatch.isPanelOpen) return;
+
+        if (Minigame.Instance != null)
+        {
+            RoleGuideButtonPatch.ClosePanel();
+        }
+    }
+}
 
 [HarmonyPatch(typeof(ChatController), nameof(ChatController.SetVisible))]
-public static class AutoCloseOnChatPatch { public static void Postfix(bool visible) { if (visible && RoleGuideButtonPatch.isPanelOpen) RoleGuideButtonPatch.ClosePanel(); } }
+public static class AutoCloseOnChatPatch
+{
+    public static void Postfix(bool visible)
+    {
+        if (visible && RoleGuideButtonPatch.isPanelOpen)
+        {
+            RoleGuideButtonPatch.ClosePanel();
+        }
+    }
+}
 
 [HarmonyPatch(typeof(MeetingHud), nameof(MeetingHud.Start))]
-public static class ClosePanelOnMeetingPatch { public static void Postfix() => RoleGuideButtonPatch.ClosePanel(); }
+public static class ClosePanelOnMeetingPatch
+{
+    public static void Postfix() => RoleGuideButtonPatch.ClosePanel();
+}
 
 [HarmonyPatch(typeof(AmongUsClient), nameof(AmongUsClient.OnGameEnd))]
-public static class ClosePanelOnGameEndPatch { public static void Prefix() => RoleGuideButtonPatch.ClosePanel(); }
+public static class ClosePanelOnGameEndPatch
+{
+    public static void Prefix() => RoleGuideButtonPatch.ClosePanel();
+}

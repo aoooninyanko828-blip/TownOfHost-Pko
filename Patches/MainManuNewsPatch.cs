@@ -50,6 +50,24 @@ public class ModNewsHistory
             {
                 var news = new ModNews
                 {
+                    Number = 100064,
+                    Title = "ぷれいしていただきありがとうございます:)",
+                    SubTitle = "<color=#FF9631>Town Of Host-Pko v3.24.11.40</color>",
+                    ShortTitle = "<color=#FF9631>●TOH-Pko v3.24.11.40</color>",
+                    Text = "・モデレーターの修正\n"
+                    + "・波動砲の★が正しく表示されないバグの修正(これもみっちーのせいです、許しません^^)\n"
+                    + "・波動砲、波動砲ジャッカルのチャージ中とビーム中の★の色を自分の体の色に仕様変更(これで詰めやすくなったね!)"
+                    + "↑それに伴い役職説明も変更したぜーい\n"
+                    + "・イビルゲッサー、ナイスゲッサーの翻訳\n"
+                    + "・新しいボタンの作成　※まだ未完成\n"
+                    ,
+                    Date = "2026-4-28"
+                };
+                AllModNews.Add(news);
+            }
+            {
+                var news = new ModNews
+                {
                     Number = 100063,
                     Title = "Pkoってぴけおって読むらしいぜ",
                     SubTitle = "<color=#FF9631>Town Of Host-Pko v3.23.11.39</color>",

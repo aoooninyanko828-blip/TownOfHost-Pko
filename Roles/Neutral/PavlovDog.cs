@@ -409,6 +409,16 @@ public abstract class PavlovDogBase : RoleBase, IKiller, IAdditionalWinner, ISch
         AURoleOptions.ShapeshifterDuration = 1f;
     }
 
+    void RestartRampageAbilityCooldown()
+    {
+        if (!AmongUsClient.Instance.AmHost) return;
+
+        // がんばってリセットして
+        Player.MarkDirtySettings();
+        Player.SyncSettings();
+        Player.RpcResetAbilityCooldown();
+    }
+
     public override bool CheckShapeshift(PlayerControl target, ref bool shouldAnimate)
     {
         shouldAnimate = false;
@@ -470,9 +480,10 @@ public abstract class PavlovDogBase : RoleBase, IKiller, IAdditionalWinner, ISch
         if (!IsRampage && ShouldStartRampage())
         {
             IsRampage = true;
-            RampageTimer = null;
-            player.MarkDirtySettings();
+            RampageTimer = 0f;
+            RestartRampageAbilityCooldown();
             SendRPC();
+            return;
         }
 
         if (!IsRampage) return;
@@ -480,7 +491,7 @@ public abstract class PavlovDogBase : RoleBase, IKiller, IAdditionalWinner, ISch
         if (RampageTimer == null)
         {
             RampageTimer = 0f;
-            player.RpcResetAbilityCooldown();
+            RestartRampageAbilityCooldown();
             SendRPC();
             return;
         }

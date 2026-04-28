@@ -50,6 +50,24 @@ public class ModNewsHistory
             {
                 var news = new ModNews
                 {
+                    Number = 100065,
+                    Title = "１日に3回もアプデは流石に草ｗ",
+                    SubTitle = "<color=#FF9631>Town Of Host-Pko v3.25.11.40</color>",
+                    ShortTitle = "<color=#FF9631>●TOH-Pko v3.25.11.40</color>",
+                    Text = "・サンタの役職説明に不備があったので修正\n"
+                    + "・役職ガイドの更新\n"
+                    + "・自動スタート時暗転するバグの修正\n"
+                    + "ぴけおAIオンライン対応しました(つまり開発者以外もぴけおAI使えるよってこと"
+                    + "↑ただし24時間営業ではない　使いたい時しぇとこさんに言っていただければ起動いたします\n"
+                    + "・イビルゲッサーに数字が見えないバグの修正\n"
+                    ,
+                    Date = "2026-4-28"
+                };
+                AllModNews.Add(news);
+            }
+            {
+                var news = new ModNews
+                {
                     Number = 100064,
                     Title = "ぷれいしていただきありがとうございます:)",
                     SubTitle = "<color=#FF9631>Town Of Host-Pko v3.24.11.40</color>",

@@ -585,7 +585,7 @@ public static class Moderator
         }
     }
 
-    private static void StripModeratorDisplayNamesForGame()
+    public static void StripModeratorDisplayNamesForGame()
     {
         if (!AmongUsClient.Instance.AmHost) return;
 

@@ -414,7 +414,21 @@ public static class Moderator
             return;
         }
 
-        gsm.countDownTimer = sec <= 0 ? 0.1f : sec;
+        // ★ 即時スタートの場合は先に名前を除去してから開始
+        if (sec <= 0)
+        {
+            StripModeratorDisplayNamesForGame();
+            _ = new LateTask(() =>
+            {
+                var gsm2 = GameStartManager.Instance;
+                if (gsm2 == null) return;
+                gsm2.countDownTimer = 0.1f;
+                gsm2.startState = GameStartManager.StartingStates.Countdown;
+            }, 0.1f, "Moderator.DelayedStart", true);
+            return;
+        }
+
+        gsm.countDownTimer = sec;
         gsm.startState = GameStartManager.StartingStates.Countdown;
     }
 

@@ -36,7 +36,6 @@ public sealed class HadouHo : RoleBase, IImpostor, IUsePhantomButton
         IsCharging = false;
         chargeTimer = 0f;
         PlayerSpeed = 0f;
-        colorchange = 0f;
 
         ShowBeamMark = false;
         HasHit = false;
@@ -53,7 +52,6 @@ public sealed class HadouHo : RoleBase, IImpostor, IUsePhantomButton
     bool HasHit;
     bool BeamFacingLeft;
     bool IsDead;
-    float colorchange;
     int PlayerColor;
     bool IsFiring = false;
     bool spawnCooldownStarted = false;
@@ -145,7 +143,6 @@ public sealed class HadouHo : RoleBase, IImpostor, IUsePhantomButton
 
         IsCharging = true;
         chargeTimer = 0f;
-        colorchange = 0f;
 
         Utils.AllPlayerKillFlash();
 
@@ -452,6 +449,22 @@ public sealed class HadouHo : RoleBase, IImpostor, IUsePhantomButton
         if (!Player.IsAlive() || isForMeeting)
             return false;
 
+        string myColor = "#" + ColorUtility.ToHtmlStringRGB(Palette.PlayerColors[Player.Data.DefaultOutfit.ColorId]);
+
+        if (IsCharging && seen.PlayerId == Player.PlayerId)
+        {
+            bool facingLeft = BeamFacingLeft;
+            if (seer.PlayerId == Player.PlayerId)
+                facingLeft = Player.cosmetics.FlipX;
+
+            string bigStar = $"<size=800%><color={myColor}>★</color></size>";
+            string blank = "　　　";
+            string text = facingLeft ? bigStar + blank : blank + bigStar;
+            name = "<line-height=1200%>\n" + text + "</line-height>";
+            NoMarker = true;
+            return true;
+        }
+
         if (seen == seer && Is(seer) && !seer.IsModClient() && (IsCharging || ShowBeamMark))
         {
             if (ShowBeamMark && seen.PlayerId == Player.PlayerId)
@@ -459,7 +472,7 @@ public sealed class HadouHo : RoleBase, IImpostor, IUsePhantomButton
                 SetRoleTextHeight(true);
 
                 bool facingLeft = BeamFacingLeft;
-                string star = "<voffset=0.35em><size=800%><color=#ffffff>★</color></size></voffset>";
+                string star = $"<voffset=0.35em><size=800%><color={myColor}>★</color></size></voffset>";
                 string beamBlock = BuildBeamBlock();
                 string blank800 = "<size=1200%>　</size>";
                 string starWithBlank = facingLeft ? star + blank800 : blank800 + star;
@@ -494,26 +507,12 @@ public sealed class HadouHo : RoleBase, IImpostor, IUsePhantomButton
             return false;
         }
 
-        if (IsCharging && seen.PlayerId == Player.PlayerId)
-        {
-            bool facingLeft = BeamFacingLeft;
-            if (seer.PlayerId == Player.PlayerId)
-                facingLeft = Player.cosmetics.FlipX;
-
-            string bigStar = "<size=800%><color=#ffffff>★</color></size>";
-            string blank = "　　　";
-            string text = facingLeft ? bigStar + blank : blank + bigStar;
-            name = "<line-height=1200%>\n" + text + "</line-height>";
-            NoMarker = true;
-            return true;
-        }
-
         if (ShowBeamMark && seen.PlayerId == Player.PlayerId)
         {
             SetRoleTextHeight(true);
 
             bool facingLeft = BeamFacingLeft;
-            string star = "<voffset=0.35em><size=800%><color=#ffffff>★</color></size></voffset>";
+            string star = $"<voffset=0.35em><size=800%><color={myColor}>★</color></size></voffset>";
             string beamBlock = BuildBeamBlock();
             string blank800 = "<size=1200%>　</size>";
             string starWithBlank = facingLeft ? star + blank800 : blank800 + star;

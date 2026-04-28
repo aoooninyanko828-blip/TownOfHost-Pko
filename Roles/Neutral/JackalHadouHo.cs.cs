@@ -53,7 +53,6 @@ public sealed class JackalHadouHo : RoleBase, ILNKiller, IUsePhantomButton, ISel
         chargeTimer = 0f;
         superChargeTimer = 0f;
         PlayerSpeed = 0f;
-        colorchange = 0f;
         ShowBeamMark = false;
         HasHit = false;
         IsDead = false;
@@ -78,7 +77,6 @@ public sealed class JackalHadouHo : RoleBase, ILNKiller, IUsePhantomButton, ISel
     bool HasHit;
     bool BeamFacingLeft;
     bool IsDead;
-    float colorchange;
     int PlayerColor;
     bool IsFiring = false;
     public bool CanSideKick;
@@ -291,7 +289,6 @@ public sealed class JackalHadouHo : RoleBase, ILNKiller, IUsePhantomButton, ISel
             chargeTimer = 0f;
             Utils.AllPlayerKillFlash();
         }
-        colorchange = 0f;
 
         Main.AllPlayerKillCooldown[Player.PlayerId] = 60f;
         Player.SetKillCooldown(60f);
@@ -791,29 +788,30 @@ public sealed class JackalHadouHo : RoleBase, ILNKiller, IUsePhantomButton, ISel
     public override bool GetTemporaryName(ref string name, ref bool NoMarker, bool isForMeeting, PlayerControl seer, PlayerControl seen = null)
     {
         seen ??= seer;
+
         if (!Player.IsAlive() || isForMeeting)
             return false;
 
+        string myColor = "#" + ColorUtility.ToHtmlStringRGB(Palette.PlayerColors[Player.Data.DefaultOutfit.ColorId]);
+
+        if ((IsCharging || IsSuperCharging) && seen.PlayerId == Player.PlayerId)
+        {
+            bool facingLeft = seer.PlayerId == Player.PlayerId ? Player.cosmetics.FlipX : BeamFacingLeft;
+            string bigStar = $"<size=800%><color={myColor}>★</color></size>";
+            string blank = "　　　";
+            string text = facingLeft ? bigStar + blank : blank + bigStar;
+            name = "<line-height=1200%>\n" + text + "</line-height>";
+            NoMarker = true;
+            return true;
+        }
+
         if (seen == seer && Is(seer) && !seer.IsModClient() && (IsCharging || IsSuperCharging || ShowBeamMark))
         {
-            if (!Player.IsAlive() || isForMeeting) return false;
-
-            if ((IsCharging || IsSuperCharging) && seen.PlayerId == Player.PlayerId)
-            {
-                bool facingLeft = seer.PlayerId == Player.PlayerId ? Player.cosmetics.FlipX : BeamFacingLeft;
-                string bigStar = "<size=800%><color=#ffffff>★</color></size>";
-                string blank = "　　　";
-                string text = facingLeft ? bigStar + blank : blank + bigStar;
-                name = "<line-height=1200%>\n" + text + "</line-height>";
-                NoMarker = true;
-                return true;
-            }
-
             if (ShowBeamMark && seen.PlayerId == Player.PlayerId)
             {
                 SetRoleTextHeight(true);
                 bool facingLeft = BeamFacingLeft;
-                string star = "<voffset=0.35em><size=800%><color=#ffffff>★</color></size></voffset>";
+                string star = $"<voffset=0.35em><size=800%><color={myColor}>★</color></size></voffset>";
                 string beamBlock = IsSuperBeam ? BuildSuperBeamBlock() : BuildBeamBlock();
                 int beamRepeat = IsSuperBeam ? 4 : 2;
                 string blank800 = IsSuperBeam ? "<size=1800%>　</size>" : "<size=1200%>　</size>";
@@ -849,24 +847,11 @@ public sealed class JackalHadouHo : RoleBase, ILNKiller, IUsePhantomButton, ISel
             return false;
         }
 
-        if (!Player.IsAlive() || isForMeeting) return false;
-
-        if ((IsCharging || IsSuperCharging) && seen.PlayerId == Player.PlayerId)
-        {
-            bool facingLeft = seer.PlayerId == Player.PlayerId ? Player.cosmetics.FlipX : BeamFacingLeft;
-            string bigStar = "<size=800%><color=#ffffff>★</color></size>";
-            string blank = "　　　";
-            string text = facingLeft ? bigStar + blank : blank + bigStar;
-            name = "<line-height=1200%>\n" + text + "</line-height>";
-            NoMarker = true;
-            return true;
-        }
-
         if (ShowBeamMark && seen.PlayerId == Player.PlayerId)
         {
             SetRoleTextHeight(true);
             bool facingLeft = BeamFacingLeft;
-            string star = "<voffset=0.35em><size=800%><color=#ffffff>★</color></size></voffset>";
+            string star = $"<voffset=0.35em><size=800%><color={myColor}>★</color></size></voffset>";
             string beamBlock = IsSuperBeam ? BuildSuperBeamBlock() : BuildBeamBlock();
             int beamRepeat = IsSuperBeam ? 4 : 2;
             string blank800 = IsSuperBeam ? "<size=1800%>　</size>" : "<size=1200%>　</size>";

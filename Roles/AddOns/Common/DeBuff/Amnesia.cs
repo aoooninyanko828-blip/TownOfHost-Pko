@@ -22,7 +22,7 @@ namespace TownOfHost.Roles.AddOns.Common
         public static bool dontcanUseability;
         public static void SetupCustomOption()
         {
-            SetupRoleOptions(Id, TabGroup.Addons, CustomRoles.Amnesia);
+            SetupRoleOptions(Id, TabGroup.Addons, CustomRoles.Amnesia, fromtext: UtilsOption.GetFrom(From.TownOfHost_K));
             AddOnsAssignData.Create(Id + 10, CustomRoles.Amnesia, true, true, true, true);
             ObjectOptionitem.Create(Id + 20, "AddonOption", true, "", TabGroup.Addons).SetOptionName(() => "Role Option").SetSubRoleOptionItem(CustomRoles.Amnesia);
             OptionDontCanUseAbility = BooleanOptionItem.Create(Id + 40, "AmnesiaDontCanUseAbility", true, TabGroup.Addons, false).SetSubRoleOptionItem(CustomRoles.Amnesia);

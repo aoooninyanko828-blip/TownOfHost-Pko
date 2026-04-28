@@ -50,6 +50,23 @@ public class ModNewsHistory
             {
                 var news = new ModNews
                 {
+                    Number = 100066,
+                    Title = "だいぶバグが減ってきた実感があるじぇ",
+                    SubTitle = "<color=#FF9631>Town Of Host-Pko v3.25.11.41</color>",
+                    ShortTitle = "<color=#FF9631>●TOH-Pko v3.25.11.41</color>",
+                    Text = "・パブロフの犬のバグ修正\n"
+                    + "・ナイスゲッサーのバグ修正\n"
+                    + "・イーターのバグ修正\n"
+                    + "モデレーターの追加仕様\n"
+                    + "・クレジット追加\n"
+                    ,
+                    Date = "2026-4-29"
+                };
+                AllModNews.Add(news);
+            }
+            {
+                var news = new ModNews
+                {
                     Number = 100065,
                     Title = "１日に3回もアプデは流石に草ｗ",
                     SubTitle = "<color=#FF9631>Town Of Host-Pko v3.25.11.40</color>",

@@ -809,6 +809,7 @@ public enum CustomRoles
     HadouHo,
     SelfBomber,
     DoubleKiller,
+    Slugger,
     Chaser,
     //TOH-K
     Bomber,

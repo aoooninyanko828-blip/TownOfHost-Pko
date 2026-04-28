@@ -17,7 +17,7 @@ namespace TownOfHost.Roles.AddOns.Common
         static OptionItem OptionSendPlayerEveryturn; static bool sendplayercounteveryturn;
         public static void SetupCustomOption()
         {
-            SetupRoleOptions(Id, TabGroup.Addons, CustomRoles.News);
+            SetupRoleOptions(Id, TabGroup.Addons, CustomRoles.News, fromtext: UtilsOption.GetFrom(From.TownOfHost_K));
             AddOnsAssignData.Create(Id + 10, CustomRoles.News, true, true, true, true);
             ObjectOptionitem.Create(Id + 24, "AddonOption", true, "", TabGroup.Addons).SetOptionName(() => "Role Option").SetSubRoleOptionItem(CustomRoles.News);
             //OptionSidekickToremove = BooleanOptionItem.Create(Id + 19, "NewsSidekickToremove", false, TabGroup.Addons, false)

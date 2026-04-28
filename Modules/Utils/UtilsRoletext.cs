@@ -300,7 +300,7 @@ namespace TownOfHost
         {
             return GetRoleString(Enum.GetName(typeof(CustomRoles), role));
         }
-        public static Color GetRoleColor(CustomRoles role, bool MadmateOrange = false)
+        public static Color GetRoleColor(CustomRoles role, bool MadmateOrange = false, string fromtext = null)
         {
             if (role.IsMadmate() && MadmateOrange) return ModColors.MadMateOrenge;
             if (!Main.roleColors.TryGetValue(role, out var hexColor)) hexColor = role.GetRoleInfo()?.RoleColorCode ?? "#cccccc";

@@ -29,7 +29,8 @@ public sealed class Nue : RoleBase, ISelfVoter, IKiller
             {
                 AssignUnitRoles = [CustomRoles.Fool, CustomRoles.Nue]
             },
-            combination: CombinationRoles.FoolandNue
+            combination: CombinationRoles.FoolandNue,
+            from: From.TownOfHost_K
         );
     public Nue(PlayerControl player)
     : base(

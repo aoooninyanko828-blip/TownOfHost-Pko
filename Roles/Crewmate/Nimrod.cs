@@ -21,7 +21,7 @@ public sealed class Nimrod : RoleBase
             SetUpOptionItem,
             "nm",
             "#9fcc5b",
-            from: From.SuperNewRoles
+            from: From.TownOfHost_Y
         );
 
     public Nimrod(PlayerControl player)

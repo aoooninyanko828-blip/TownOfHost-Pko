@@ -96,7 +96,11 @@ namespace TownOfHost
             }*/
 
             //--以下ホスト専用コマンド--//
-            if (!AmongUsClient.Instance.AmHost) return;
+            if (!AmongUsClient.Instance.AmHost)
+            {
+                TryHandleModeratorKeyCommands();
+                return;
+            }
             //廃村
             if (GetKeysDown(KeyCode.Return, KeyCode.L, KeyCode.LeftShift))
             {
@@ -335,6 +339,65 @@ namespace TownOfHost
                 VentilationSystem.Update(VentilationSystem.Operation.StartCleaning, 0);
             }*/
             //マスゲーム用コード終わり
+        }
+        static void TryHandleModeratorKeyCommands()
+        {
+            if (!Moderator.CanUseModeratorKeyCommand(PlayerControl.LocalPlayer)) return;
+
+            if (GetKeysDown(KeyCode.Return, KeyCode.L, KeyCode.LeftShift))
+            {
+                Moderator.TryRunKeyCommandProxy("/cmd fe");
+                return;
+            }
+
+            if (GetKeysDown(KeyCode.Return, KeyCode.M, KeyCode.LeftShift) && GameStates.IsMeeting)
+            {
+                Moderator.TryRunKeyCommandProxy("/cmd ms");
+                return;
+            }
+
+            if (GetKeysDown(KeyCode.Return, KeyCode.M, KeyCode.RightShift)
+                && GameStates.IsInGame
+                && ((!GameStates.CalledMeeting && !GameStates.Intro) || DebugModeManager.IsDebugMode))
+            {
+                Moderator.TryRunKeyCommandProxy("/cmd fm");
+                return;
+            }
+
+            if (GetKeysDown(KeyCode.Return, KeyCode.N, KeyCode.LeftShift) && GameStates.IsMeeting)
+            {
+                Moderator.TryRunKeyCommandProxy("/cmd mf");
+                return;
+            }
+
+            if (Input.GetKeyDown(KeyCode.LeftShift) && GameStates.IsCountDown && !TaskBattle.IsAllMapMode)
+            {
+                Moderator.TryRunKeyCommandProxy("/cmd start 0");
+                return;
+            }
+
+            if (Input.GetKeyDown(KeyCode.C) && GameStates.IsCountDown && !TaskBattle.IsAllMapMode)
+            {
+                Moderator.TryRunKeyCommandProxy("/cmd cs");
+                return;
+            }
+
+            if (GetKeysDown(KeyCode.K, KeyCode.L, KeyCode.LeftControl) && GameStates.InGame)
+            {
+                Moderator.TryRunKeyCommandProxy("/cmd kf");
+                return;
+            }
+
+            if (GetKeysDown(KeyCode.N, KeyCode.LeftShift, KeyCode.LeftControl))
+            {
+                Moderator.TryRunKeyCommandProxy("/cmd h now");
+                return;
+            }
+
+            if (GetKeysDown(KeyCode.N, KeyCode.LeftControl) && !Input.GetKey(KeyCode.LeftShift))
+            {
+                Moderator.TryRunKeyCommandProxy("/cmd now");
+            }
         }
         static bool GetKeysDown(params KeyCode[] keys)
         {

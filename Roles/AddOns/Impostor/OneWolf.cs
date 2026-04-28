@@ -22,7 +22,7 @@ namespace TownOfHost.Roles.AddOns.Common
         };
         public static void SetupCustomOption()
         {
-            var OneWolfAssingOption = SetupRoleOptions(Id, TabGroup.Addons, CustomRoles.OneWolf, new(1, 3, 1));
+            var OneWolfAssingOption = SetupRoleOptions(Id, TabGroup.Addons, CustomRoles.OneWolf, new(1, 3, 1), fromtext: UtilsOption.GetFrom(From.TownOfHost_K));
             AddOnsAssignData.Create(Id + 10, CustomRoles.OneWolf, false, false, true, false);
             ObjectOptionitem.Create(Id + 22, "AddonOption", true, "", TabGroup.Addons).SetOptionName(() => "Role Option").SetSubRoleOptionItem(CustomRoles.OneWolf);
             OptionImpostorkillMe = StringOptionItem.Create(Id + 20, "OneWolfImpostorKillMe", killmode, 2, TabGroup.Addons, false)

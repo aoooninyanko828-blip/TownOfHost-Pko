@@ -14,7 +14,7 @@ namespace TownOfHost.Roles.AddOns.Common
 
         public static void SetupCustomOption()
         {
-            SetupRoleOptions(Id, TabGroup.Addons, CustomRoles.Slacker);
+            SetupRoleOptions(Id, TabGroup.Addons, CustomRoles.Slacker, fromtext: UtilsOption.GetFrom(From.TownOfHost_K));
             AddOnsAssignData.Create(Id + 10, CustomRoles.Slacker, true, true, true, true);
         }
 

@@ -15,7 +15,7 @@ namespace TownOfHost.Roles.AddOns.Common
         public static float Speed;
         public static void SetupCustomOption()
         {
-            SetupRoleOptions(Id, TabGroup.Addons, CustomRoles.Speeding);
+            SetupRoleOptions(Id, TabGroup.Addons, CustomRoles.Speeding, fromtext: UtilsOption.GetFrom(From.TownOfHost_K));
             AddOnsAssignData.Create(Id + 10, CustomRoles.Speeding, true, true, true, true);
             ObjectOptionitem.Create(Id + 51, "AddonOption", true, "", TabGroup.Addons).SetOptionName(() => "Role Option").SetSubRoleOptionItem(CustomRoles.Autopsy);
             OptionSpeed = FloatOptionItem.Create(Id + 50, "AddSpeed", new(0.25f, 10f, 0.25f), 0.5f, TabGroup.Addons, false).SetSubRoleOptionItem(CustomRoles.Speeding);

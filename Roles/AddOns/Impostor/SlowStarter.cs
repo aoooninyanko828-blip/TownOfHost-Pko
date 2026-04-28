@@ -16,7 +16,7 @@ namespace TownOfHost.Roles.AddOns.Common
         public static bool cankill;
         public static void SetupCustomOption()
         {
-            SetupRoleOptions(Id, TabGroup.Addons, CustomRoles.SlowStarter, new(1, 3, 1));
+            SetupRoleOptions(Id, TabGroup.Addons, CustomRoles.SlowStarter, new(1, 3, 1), fromtext: UtilsOption.GetFrom(From.TownOfHost_K));
             AddOnsAssignData.Create(Id + 10, CustomRoles.SlowStarter, false, false, true, false);
             ObjectOptionitem.Create(Id + 52, "AddonOption", true, "", TabGroup.Addons).SetOptionName(() => "Role Option").SetSubRoleOptionItem(CustomRoles.SlowStarter);
             CanKillImpostorCount = IntegerOptionItem.Create(Id + 50, "MafiaCanKillImpostorCount", new(1, 3, 1), 2, TabGroup.Addons, false).SetSubRoleOptionItem(CustomRoles.SlowStarter);

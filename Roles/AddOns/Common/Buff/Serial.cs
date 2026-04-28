@@ -15,7 +15,7 @@ namespace TownOfHost.Roles.AddOns.Common
 
         public static void SetupCustomOption()
         {
-            SetupRoleOptions(Id, TabGroup.Addons, CustomRoles.Serial);
+            SetupRoleOptions(Id, TabGroup.Addons, CustomRoles.Serial, fromtext: UtilsOption.GetFrom(From.TownOfHost_K));
             AddOnsAssignDataOnlyKiller.Create(Id + 10, CustomRoles.Serial, true, true, true, true);
             ObjectOptionitem.Create(Id + 51, "AddonOption", true, "", TabGroup.Addons).SetOptionName(() => "Role Option").SetSubRoleOptionItem(CustomRoles.Serial);
             KillCooldown = FloatOptionItem.Create(Id + 50, "KillCooldown", new(0f, 180f, 0.5f), 25f, TabGroup.Addons, false).SetValueFormat(OptionFormat.Seconds).SetSubRoleOptionItem(CustomRoles.Serial);

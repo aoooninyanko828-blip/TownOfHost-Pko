@@ -13,7 +13,7 @@ namespace TownOfHost.Roles.AddOns.Common
 
         public static void SetupCustomOption()
         {
-            SetupRoleOptions(Id, TabGroup.Addons, CustomRoles.Stack);
+            SetupRoleOptions(Id, TabGroup.Addons, CustomRoles.Stack, fromtext: UtilsOption.GetFrom(From.TownOfHost_K));
             AddOnsAssignData.Create(Id + 10, CustomRoles.Stack, true, true, true, true);
             ObjectOptionitem.Create(Id + 21, "AddonOption", true, "", TabGroup.Addons).SetOptionName(() => "Role Option").SetSubRoleOptionItem(CustomRoles.Stack);
             AssignAddon = (AssignOptionItem)AssignOptionItem.Create(Id + 20, "AssignAddon", 0, TabGroup.Addons, false, addon: true,

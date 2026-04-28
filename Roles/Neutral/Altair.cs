@@ -20,7 +20,8 @@ public sealed class Altair : RoleBase, IKiller, ISchrodingerCatOwner, IAdditiona
             (3, 1),
             true,
             countType: CountTypes.MilkyWay,
-            combination: CombinationRoles.VegaandAltair
+            combination: CombinationRoles.VegaandAltair,
+            from: From.TownOfHost_K
         );
     public Altair(PlayerControl player)
     : base(

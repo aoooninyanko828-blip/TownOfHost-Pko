@@ -28,7 +28,8 @@ public sealed class PavlovDog : PavlovDogBase
             {
                 AssignCountRule = new(1, 1, 1),
                 AssignUnitRoles = [CustomRoles.PavlovOwner]
-            }
+            },
+            from: From.SuperNewRoles
         );
 
     public PavlovDog(PlayerControl player)

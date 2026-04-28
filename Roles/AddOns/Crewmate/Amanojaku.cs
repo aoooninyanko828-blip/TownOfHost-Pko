@@ -16,7 +16,7 @@ namespace TownOfHost.Roles.AddOns.Common
         public static Dictionary<CustomWinner, OptionItem> OptionRole = new();
         public static void SetupCustomOption()
         {
-            SetupRoleOptions(Id, TabGroup.Addons, CustomRoles.Amanojaku);
+            SetupRoleOptions(Id, TabGroup.Addons, CustomRoles.Amanojaku, fromtext: UtilsOption.GetFrom(From.TownOfHost_K));
             AmanojakuAssing.Create(Id + 10, CustomRoles.Amanojaku, true, true);
             AssingDay = IntegerOptionItem.Create(Id + 20, "AmanojakuAssingDay", new(0, 99, 1), 4, TabGroup.Addons, false).SetSubRoleOptionItem(CustomRoles.Amanojaku).SetValueFormat(OptionFormat.day);
             ObjectOptionitem.Create(Id + 21, "AddonOption", true, "", TabGroup.Addons).SetOptionName(() => "Role Option").SetSubRoleOptionItem(CustomRoles.Amanojaku);

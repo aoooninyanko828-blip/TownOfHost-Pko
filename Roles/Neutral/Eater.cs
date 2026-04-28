@@ -161,6 +161,11 @@ public sealed class Eater : RoleBase, IKiller, IUsePhantomButton, IKillFlashSeea
         IUsePhantomButton.IPPlayerKillCooldown[Player.PlayerId] = 0f;
         Player.RpcResetAbilityCooldown();
         RefreshKillCooldown();
+
+        if (AmongUsClient.Instance.AmHost && initialState)
+        {
+            Player.SetKillCooldown(GetCurrentKillCooldownTimer(), force: true, delay: true);
+        }
     }
 
     public override void OnDestroy()

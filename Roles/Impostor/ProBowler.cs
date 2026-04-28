@@ -23,7 +23,8 @@ public sealed class ProBowler : RoleBase, IImpostor
             SetupOptionItem,
             "Pb",
             OptionSort: (3, 4),
-            Desc: () => string.Format(GetString("ProBowlerDesc"), OptionBowling.GetBool() ? GetString("ProBowlerDescBowl") : GetString("ProBowlerDescTeleport"), OptionDeathReasonIsFall.GetBool() ? GetString("DeathReason.Fall") : GetString("DeathReason.Kill"), OptionMaxUseCount.GetInt())
+            Desc: () => string.Format(GetString("ProBowlerDesc"), OptionBowling.GetBool() ? GetString("ProBowlerDescBowl") : GetString("ProBowlerDescTeleport"), OptionDeathReasonIsFall.GetBool() ? GetString("DeathReason.Fall") : GetString("DeathReason.Kill"), OptionMaxUseCount.GetInt()),
+            from: From.TownOfHost_K
 
         );
     public ProBowler(PlayerControl player)

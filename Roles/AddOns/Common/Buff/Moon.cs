@@ -13,7 +13,7 @@ namespace TownOfHost.Roles.AddOns.Common
         public static List<byte> playerIdList = new();
         public static void SetupCustomOption()
         {
-            SetupRoleOptions(Id, TabGroup.Addons, CustomRoles.Moon);
+            SetupRoleOptions(Id, TabGroup.Addons, CustomRoles.Moon, fromtext: UtilsOption.GetFrom(From.TownOfHost_K));
             AddOnsAssignData.Create(Id + 10, CustomRoles.Moon, true, true, false, true);
         }
         public static void Init()

@@ -12,7 +12,7 @@ class Faction
     public static OptionItem CantKillFaction;
     public static void SetUpOption()
     {
-        Options.SetupRoleOptions(19600, TabGroup.Addons, CustomRoles.Faction, new(1, 1, 1));
+        Options.SetupRoleOptions(19600, TabGroup.Addons, CustomRoles.Faction, new(1, 1, 1), fromtext: UtilsOption.GetFrom(From.TownOfHost_K));
         CanSeeFactionMate = BooleanOptionItem.Create(19611, "CanSeeFactionMate", false, TabGroup.Addons, false).SetSubRoleOptionItem(CustomRoles.Faction);
         CantKillFaction = BooleanOptionItem.Create(19613, "CantKillFaction", false, TabGroup.Addons, false).SetSubRoleOptionItem(CustomRoles.Faction);
         ObjectOptionitem.Create(19612, "AddonOption", true, "", TabGroup.Addons).SetOptionName(() => "Assign Option").SetSubRoleOptionItem(CustomRoles.Faction);

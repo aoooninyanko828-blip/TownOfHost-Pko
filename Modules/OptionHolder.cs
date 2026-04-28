@@ -1253,7 +1253,7 @@ namespace TownOfHost
             OptionCanUseTpCommand = BooleanOptionItem.Create(1_300_132, "CanUseTpCommand", false, TabGroup.MainSettings, true)
                 .SetParent(OptionCommandSetting)
                 .SetColorcode("#00c1ff")
-                .SetOptionName(() => "/tp o,i コマンドを許可");
+                .SetOptionName(() => "/tp o,i ルームでのワープを許可");
 
             OptionAutoStartSetting = BooleanOptionItem.Create(1_300_200, "AutoStartSetting", false, TabGroup.MainSettings, true)
                 .SetHeader(true)

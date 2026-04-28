@@ -14,7 +14,7 @@ namespace TownOfHost.Roles.AddOns.Common
 
         public static void SetupCustomOption()
         {
-            SetupRoleOptions(Id, TabGroup.Addons, CustomRoles.Transparent);
+            SetupRoleOptions(Id, TabGroup.Addons, CustomRoles.Transparent, fromtext: UtilsOption.GetFrom(From.TownOfHost_K));
             AddOnsAssignData.Create(Id + 10, CustomRoles.Transparent, true, true, true, true);
         }
 

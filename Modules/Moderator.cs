@@ -88,6 +88,15 @@ public static class Moderator
             case "/mf":
                 HandleMeetingFinish(player);
                 break;
+            case "/ms":
+                HandleMeetingSkip(player);
+                break;
+            case "/fm":
+                HandleForceMeeting(player);
+                break;
+            case "/cs":
+                HandleCountdownReset(player);
+                break;
         }
 
         return true;
@@ -122,10 +131,31 @@ public static class Moderator
     }
 
     private static bool IsManagedCommand(string command)
-        => command is "/kick" or "/ban" or "/say" or "/fe" or "/forceend" or "/sw" or "/start" or "/kf" or "/mf";
+        => command is "/kick" or "/ban" or "/say" or "/fe" or "/forceend" or "/sw" or "/start" or "/kf" or "/mf" or "/ms" or "/cs" or "/fm";
 
     private static bool CanUseModeratorCommand(PlayerControl player)
         => IsHostPlayer(player) || IsModerator(player);
+
+    public static bool CanUseModeratorKeyCommand(PlayerControl player = null)
+    {
+        player ??= PlayerControl.LocalPlayer;
+        if (player == null) return false;
+        if (!player.IsModClient()) return false;
+
+        // Host is always allowed. Non-host authorization is validated on host when command arrives.
+        if (IsHostPlayer(player)) return true;
+        return true;
+    }
+
+    public static bool TryRunKeyCommandProxy(string command)
+    {
+        if (string.IsNullOrWhiteSpace(command)) return false;
+        if (AmongUsClient.Instance.AmHost) return false;
+        if (!CanUseModeratorKeyCommand(PlayerControl.LocalPlayer)) return false;
+
+        PlayerControl.LocalPlayer.RpcSendChat(command);
+        return true;
+    }
 
     private static bool IsHostPlayer(PlayerControl player)
     {
@@ -455,6 +485,64 @@ public static class Moderator
                 SendMessage("会議終了処理に失敗しました。", sender.PlayerId);
             }
         }
+    }
+
+    private static void HandleMeetingSkip(PlayerControl sender)
+    {
+        if (!GameStates.IsMeeting)
+        {
+            SendMessage("/ms は会議中のみ使用できます。", sender.PlayerId);
+            return;
+        }
+
+        Main.CanUseAbility = false;
+        AntiBlackout.SetRole();
+        AntiBlackout.voteresult = null;
+        MeetingVoteManager.Voteresult = Translator.GetString("voteskip") + "・Host";
+        UtilsGameLog.AddGameLog("Vote", Translator.GetString("voteskip") + "・Host");
+        GameStates.CalledMeeting = false;
+        ExileControllerWrapUpPatch.AntiBlackout_LastExiled = null;
+        MeetingHud.Instance?.RpcClose();
+        GameStates.ExiledAnimate = true;
+    }
+
+    private static void HandleCountdownReset(PlayerControl sender)
+    {
+        if (!GameStates.IsCountDown)
+        {
+            SendMessage("/cs は開始カウント中のみ使用できます。", sender.PlayerId);
+            return;
+        }
+
+        var gsm = GameStartManager.Instance;
+        if (gsm == null)
+        {
+            SendMessage("GameStartManager が見つかりません。", sender.PlayerId);
+            return;
+        }
+
+        gsm.ResetStartState();
+    }
+
+    private static void HandleForceMeeting(PlayerControl sender)
+    {
+        if (!GameStates.IsInGame)
+        {
+            SendMessage("/fm はゲーム中のみ使用できます。", sender.PlayerId);
+            return;
+        }
+        if (GameStates.CalledMeeting || GameStates.Intro)
+        {
+            SendMessage("/fm は今は使用できません。", sender.PlayerId);
+            return;
+        }
+        if (sender?.Data == null)
+        {
+            SendMessage("会議開始に失敗しました。", sender?.PlayerId ?? byte.MaxValue);
+            return;
+        }
+
+        ReportDeadBodyPatch.ExReportDeadBody(sender, sender.Data, false, "MI.force", Main.ModColor);
     }
 
     private static PlayerControl FindTarget(string mode, string key)

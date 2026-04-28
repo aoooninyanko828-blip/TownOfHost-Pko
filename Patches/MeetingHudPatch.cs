@@ -455,6 +455,11 @@ public static class MeetingHudPatch
                             continue;
                     }
                 }
+                if (seer.Is(CustomRoles.NiceGuesser))
+                {
+                    if (!seer.Data.IsDead && !target.Data.IsDead && target != seer)
+                        fsb.Append(Utils.ColorString(Color.yellow, target.PlayerId.ToString()) + " ");
+                }
                 if (RoleAddAddons.GetRoleAddon(seer.GetCustomRole(), out var data, seer, subrole: CustomRoles.Guesser) && data.GiveGuesser.GetBool())
                 {
                     if (!seer.Data.IsDead && !target.Data.IsDead && target != seer)

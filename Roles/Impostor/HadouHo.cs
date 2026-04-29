@@ -32,16 +32,15 @@ public sealed class HadouHo : RoleBase, IImpostor, IUsePhantomButton
         SelfDestructOnMiss = OptionSelfDestructOnMiss.GetBool();
         KillImpostor = OptionKillImpostor.GetBool();
         BeamColorModeValue = OptionBeamColorMode.GetValue();
-
         IsCharging = false;
         chargeTimer = 0f;
         PlayerSpeed = 0f;
-
         ShowBeamMark = false;
         HasHit = false;
         IsDead = false;
         IsFiring = false;
-
+        _prevCharging = false;
+        _prevBeamMark = false;
         CustomRoleManager.LowerOthers.Add(GetLowerTextOthers);
     }
 
@@ -55,57 +54,34 @@ public sealed class HadouHo : RoleBase, IImpostor, IUsePhantomButton
     int PlayerColor;
     bool IsFiring = false;
     bool spawnCooldownStarted = false;
+    bool _prevCharging;
+    bool _prevBeamMark;
 
     static OptionItem OptionCoolDown;
     static float Cooldown;
     public static float CooldownValue => Cooldown;
-
     static OptionItem OptionKillCoolDown;
     static float KillCooldown;
-
     static OptionItem OptionChargeTime;
     static float ChargeTime;
-
     static OptionItem OptionSelfDestructOnMiss;
     static bool SelfDestructOnMiss;
-
     static OptionItem OptionKillImpostor;
     static bool KillImpostor;
-
     static OptionItem OptionBeamColorMode;
     static int BeamColorModeValue;
 
-    enum BeamColorMode
-    {
-        Rainbow,
-        Single,
-    }
-
-    enum OptionName
-    {
-        HadouHoChargeTime,
-        HadouHoSelfDestruct,
-        HadouHoKillImpostor,
-    }
+    enum BeamColorMode { Rainbow, Single }
+    enum OptionName { HadouHoChargeTime, HadouHoSelfDestruct, HadouHoKillImpostor }
 
     static void SetUpOptionItem()
     {
-        OptionKillCoolDown = FloatOptionItem.Create(RoleInfo, 14, GeneralOption.KillCooldown, OptionBaseCoolTime, 30f, false)
-            .SetValueFormat(OptionFormat.Seconds);
-        OptionCoolDown = FloatOptionItem.Create(RoleInfo, 10, GeneralOption.Cooldown, OptionBaseCoolTime, 30f, false)
-            .SetValueFormat(OptionFormat.Seconds);
-        OptionChargeTime = FloatOptionItem.Create(RoleInfo, 11, OptionName.HadouHoChargeTime, new(0.5f, 10f, 0.5f), 3f, false)
-            .SetValueFormat(OptionFormat.Seconds);
+        OptionKillCoolDown = FloatOptionItem.Create(RoleInfo, 14, GeneralOption.KillCooldown, OptionBaseCoolTime, 30f, false).SetValueFormat(OptionFormat.Seconds);
+        OptionCoolDown = FloatOptionItem.Create(RoleInfo, 10, GeneralOption.Cooldown, OptionBaseCoolTime, 30f, false).SetValueFormat(OptionFormat.Seconds);
+        OptionChargeTime = FloatOptionItem.Create(RoleInfo, 11, OptionName.HadouHoChargeTime, new(0.5f, 10f, 0.5f), 3f, false).SetValueFormat(OptionFormat.Seconds);
         OptionSelfDestructOnMiss = BooleanOptionItem.Create(RoleInfo, 12, OptionName.HadouHoSelfDestruct, false, false);
         OptionKillImpostor = BooleanOptionItem.Create(RoleInfo, 13, OptionName.HadouHoKillImpostor, false, false);
-        OptionBeamColorMode = StringOptionItem.Create(
-            RoleInfo,
-            20,
-            "HadouHoBeamColorMode",
-            new string[] { "Rainbow", "Single" },
-            1,
-            false
-        );
+        OptionBeamColorMode = StringOptionItem.Create(RoleInfo, 20, "HadouHoBeamColorMode", new string[] { "Rainbow", "Single" }, 1, false);
     }
 
     public override void Add()
@@ -116,11 +92,7 @@ public sealed class HadouHo : RoleBase, IImpostor, IUsePhantomButton
         spawnCooldownStarted = false;
     }
 
-    public override void ApplyGameOptions(IGameOptions opt)
-    {
-        AURoleOptions.PhantomCooldown = Cooldown;
-    }
-
+    public override void ApplyGameOptions(IGameOptions opt) => AURoleOptions.PhantomCooldown = Cooldown;
     public float CalculateKillCooldown() => KillCooldown;
 
     public override bool OnEnterVent(PlayerPhysics physics, int ventId)
@@ -134,72 +106,36 @@ public sealed class HadouHo : RoleBase, IImpostor, IUsePhantomButton
     {
         AdjustKillCooldown = false;
         ResetCooldown = false;
-
-        if (IsFiring) return;
-        if (ShowBeamMark) return;
-        if (!Player.IsAlive() || IsCharging) return;
+        if (IsFiring || ShowBeamMark || !Player.IsAlive() || IsCharging) return;
 
         IsFiring = true;
         IsCharging = true;
         chargeTimer = 0f;
-
-        // ★ボタンを押した時に「1回だけ」移動速度を最低にする
         Main.AllPlayerSpeed[Player.PlayerId] = Main.MinSpeed;
         Player.MarkDirtySettings();
-
         Utils.AllPlayerKillFlash();
-
         Main.AllPlayerKillCooldown[Player.PlayerId] = 60f;
         Player.SetKillCooldown(60f);
-        _ = new LateTask(() =>
-        {
-            Player.SyncSettings();
-        }, 0.1f, "HadouHoKillTimer", true);
+        _ = new LateTask(() => { Player.SyncSettings(); }, 0.1f, "HadouHoKillTimer", true);
         Player.SyncSettings();
-
         Main.AllPlayerKillCooldown[Player.PlayerId] = 60f;
         Player.SyncSettings();
-        UtilsNotifyRoles.NotifyRoles(OnlyMeName: true);
 
-        StartChargeFlashLoop();
+        // ★ チャージ開始時に1回だけ
+        _prevCharging = true;
+        _prevBeamMark = false;
         UtilsNotifyRoles.NotifyRoles(OnlyMeName: true);
         SendRpc();
     }
 
-    void StartChargeFlashLoop()
-    {
-        int count = (int)(ChargeTime / 0.1f);
-        for (int i = 1; i <= count; i++)
-        {
-            float t = i * 0.1f;
-            _ = new LateTask(() =>
-            {
-                if (IsDead || !Player.IsAlive()) return;
-                if (!IsCharging) return;
-            }, t, null, null);
-        }
-    }
-
     void SetRoleTextHeight(bool beaming)
     {
-        var roleTextTransform = Player.cosmetics.nameText.transform.Find("RoleText");
-        if (roleTextTransform != null)
-        {
-            var roleText = roleTextTransform.GetComponent<TMPro.TextMeshPro>();
-            if (roleText != null)
-            {
-                if (beaming)
-                {
-                    roleText.text = "<alpha=#00>縲€</alpha>";
-                    roleTextTransform.SetLocalY(0.35f);
-                }
-                else
-                {
-                    roleText.enabled = true;
-                    roleTextTransform.SetLocalY(0.35f);
-                }
-            }
-        }
+        var t = Player.cosmetics.nameText.transform.Find("RoleText");
+        if (t == null) return;
+        var rt = t.GetComponent<TMPro.TextMeshPro>();
+        if (rt == null) return;
+        if (beaming) { rt.text = "<alpha=#00>縲€</alpha>"; t.SetLocalY(0.35f); }
+        else { rt.enabled = true; t.SetLocalY(0.35f); }
     }
 
     public override void OnFixedUpdate(PlayerControl player)
@@ -214,22 +150,22 @@ public sealed class HadouHo : RoleBase, IImpostor, IUsePhantomButton
 
         if (MeetingHud.Instance != null)
         {
-            IsCharging = false;
-            ShowBeamMark = false;
-            IsFiring = false;
-
-            Main.AllPlayerSpeed[Player.PlayerId] = PlayerSpeed;
-            Player.MarkDirtySettings();
-            SetRoleTextHeight(false);
-            UtilsNotifyRoles.NotifyRoles();
+            if (IsCharging || ShowBeamMark)
+            {
+                IsCharging = false; ShowBeamMark = false; IsFiring = false;
+                _prevCharging = false; _prevBeamMark = false;
+                Main.AllPlayerSpeed[Player.PlayerId] = PlayerSpeed;
+                Player.MarkDirtySettings();
+                SetRoleTextHeight(false);
+                UtilsNotifyRoles.NotifyRoles();
+            }
             return;
         }
 
         if (!Player.IsAlive() && (IsCharging || ShowBeamMark))
         {
-            IsCharging = false;
-            ShowBeamMark = false;
-            IsFiring = false;
+            IsCharging = false; ShowBeamMark = false; IsFiring = false;
+            _prevCharging = false; _prevBeamMark = false;
             Main.AllPlayerSpeed[Player.PlayerId] = PlayerSpeed;
             Player.MarkDirtySettings();
             Player.RpcSetColor((byte)PlayerColor);
@@ -239,44 +175,30 @@ public sealed class HadouHo : RoleBase, IImpostor, IUsePhantomButton
             return;
         }
 
-        if ((IsCharging || ShowBeamMark) && !IsDead && player.IsAlive())
+        // ★ 状態変化時のみNotify
+        bool changed = (IsCharging != _prevCharging) || (ShowBeamMark != _prevBeamMark);
+        if (changed)
         {
+            _prevCharging = IsCharging;
+            _prevBeamMark = ShowBeamMark;
             UtilsNotifyRoles.NotifyRoles(ForceLoop: true);
         }
 
-        // ★激重だった移動速度の毎フレーム更新を削除
-
-        if (ShowBeamMark && Player.IsAlive())
-        {
-            ApplyBeamHit();
-        }
-
-        if (IsCharging)
-        {
-            chargeTimer += Time.fixedDeltaTime;
-            if (chargeTimer >= ChargeTime)
-            {
-                FireBeam();
-            }
-        }
+        if (ShowBeamMark && Player.IsAlive()) ApplyBeamHit();
+        if (IsCharging) { chargeTimer += Time.fixedDeltaTime; if (chargeTimer >= ChargeTime) FireBeam(); }
     }
 
     void FireBeam()
     {
         if (IsDead || !Player.IsAlive()) return;
-
         BeamFacingLeft = Player.cosmetics.FlipX;
         SendBeamDirection(BeamFacingLeft);
-
         Utils.AllPlayerKillFlash();
-
-        IsCharging = false;
-        chargeTimer = 0f;
-        HasHit = false;
-        ShowBeamMark = true;
-
+        IsCharging = false; chargeTimer = 0f; HasHit = false; ShowBeamMark = true;
         SetRoleTextHeight(true);
 
+        // ★ ビーム開始時に1回
+        _prevCharging = false; _prevBeamMark = true;
         UtilsNotifyRoles.NotifyRoles(ForceLoop: true);
         SendRpc();
         ApplyBeamHit();
@@ -285,85 +207,52 @@ public sealed class HadouHo : RoleBase, IImpostor, IUsePhantomButton
         {
             if (IsDead || !Player.IsAlive())
             {
-                ShowBeamMark = false;
-                SetRoleTextHeight(false);
-                IsFiring = false;
-                // ★撃ち終わった時に速度を元に戻す
+                ShowBeamMark = false; _prevBeamMark = false;
+                SetRoleTextHeight(false); IsFiring = false;
                 Main.AllPlayerSpeed[Player.PlayerId] = PlayerSpeed;
                 Player.MarkDirtySettings();
                 Player.RpcSetColor((byte)PlayerColor);
-                UtilsNotifyRoles.NotifyRoles();
-                SendRpc();
-                return;
+                UtilsNotifyRoles.NotifyRoles(); SendRpc(); return;
             }
-
-            ShowBeamMark = false;
+            ShowBeamMark = false; _prevBeamMark = false;
             SetRoleTextHeight(false);
-            UtilsNotifyRoles.NotifyRoles(ForceLoop: true);
-            SendRpc();
+            UtilsNotifyRoles.NotifyRoles(ForceLoop: true); SendRpc();
 
             if (!HasHit && SelfDestructOnMiss)
             {
                 Player.RpcSetColor((byte)PlayerColor);
-                // ★撃ち終わった時に速度を元に戻す
-                Main.AllPlayerSpeed[Player.PlayerId] = PlayerSpeed;
-                Player.MarkDirtySettings();
-
+                Main.AllPlayerSpeed[Player.PlayerId] = PlayerSpeed; Player.MarkDirtySettings();
                 PlayerState.GetByPlayerId(Player.PlayerId).DeathReason = CustomDeathReason.Suicide;
-                Player.RpcMurderPlayerV2(Player);
-
-                IsFiring = false;
-                return;
+                Player.RpcMurderPlayerV2(Player); IsFiring = false; return;
             }
-
             Player.RpcSetColor((byte)PlayerColor);
-            // ★撃ち終わった時に速度を元に戻す
-            Main.AllPlayerSpeed[Player.PlayerId] = PlayerSpeed;
-            Player.MarkDirtySettings();
-
+            Main.AllPlayerSpeed[Player.PlayerId] = PlayerSpeed; Player.MarkDirtySettings();
             _ = new LateTask(() =>
             {
-                if (!Player.IsAlive())
-                {
-                    IsFiring = false;
-                    return;
-                }
+                if (!Player.IsAlive()) { IsFiring = false; return; }
                 Main.AllPlayerKillCooldown[Player.PlayerId] = KillCooldown;
                 Player.SetKillCooldown(KillCooldown);
                 Player.RpcResetAbilityCooldown(Sync: true);
                 UtilsNotifyRoles.NotifyRoles(OnlyMeName: true);
-
-                _ = new LateTask(() =>
-                {
-                    IsFiring = false;
-                }, 0.3f, "HadouHoResetFiring", true);
+                _ = new LateTask(() => { IsFiring = false; }, 0.3f, "HadouHoResetFiring", true);
             }, 0.2f, "HadouHoResetKillCool", true);
         }, 3f);
     }
 
     void ApplyBeamHit()
     {
-        if (!AmongUsClient.Instance.AmHost) return;
-        if (!Player.IsAlive()) return;
-
+        if (!AmongUsClient.Instance.AmHost || !Player.IsAlive()) return;
         bool facingLeft = BeamFacingLeft;
         var myPos = Player.GetTruePosition();
         Vector2 dir = facingLeft ? Vector2.left : Vector2.right;
-
         foreach (var target in PlayerCatch.AllAlivePlayerControls)
         {
             if (target.PlayerId == Player.PlayerId) continue;
             if (!KillImpostor && target.GetCustomRole().IsImpostor() && !SuddenDeathMode.NowSuddenDeathMode) continue;
-
-            var targetPos = target.GetTruePosition();
-            var toTarget = targetPos - myPos;
+            var toTarget = target.GetTruePosition() - myPos;
             float dot = Vector2.Dot(toTarget, dir);
             if (dot <= 0) continue;
-
-            var proj = dir * dot;
-            var perp = toTarget - proj;
-            if (perp.magnitude > 1.3f) continue;
-
+            if ((toTarget - dir * dot).magnitude > 1.3f) continue;
             CustomRoleManager.OnCheckMurder(Player, target, target, target, true, deathReason: CustomDeathReason.Hit);
             HasHit = true;
         }
@@ -371,45 +260,24 @@ public sealed class HadouHo : RoleBase, IImpostor, IUsePhantomButton
 
     public override void OnReportDeadBody(PlayerControl reporter, NetworkedPlayerInfo target)
     {
-        IsCharging = false;
-        ShowBeamMark = false;
-        chargeTimer = 0f;
-        HasHit = false;
-        IsFiring = false;
-
-        // ★キャンセルされた時に速度を元に戻す
-        Main.AllPlayerSpeed[Player.PlayerId] = PlayerSpeed;
-        Player.MarkDirtySettings();
-        Player.SyncSettings();
-
-        Player.RpcSetColor((byte)PlayerColor);
-        SetRoleTextHeight(false);
-        UtilsNotifyRoles.NotifyRoles(ForceLoop: true);
-        SendRpc();
+        IsCharging = false; ShowBeamMark = false; chargeTimer = 0f; HasHit = false; IsFiring = false;
+        _prevCharging = false; _prevBeamMark = false;
+        Main.AllPlayerSpeed[Player.PlayerId] = PlayerSpeed; Player.MarkDirtySettings(); Player.SyncSettings();
+        Player.RpcSetColor((byte)PlayerColor); SetRoleTextHeight(false);
+        UtilsNotifyRoles.NotifyRoles(ForceLoop: true); SendRpc();
     }
 
     public override void OnStartMeeting()
     {
-        IsCharging = false;
-        ShowBeamMark = false;
-        chargeTimer = 0f;
-        HasHit = false;
-        IsFiring = false;
-
-        // ★キャンセルされた時に速度を元に戻す
-        Main.AllPlayerSpeed[Player.PlayerId] = PlayerSpeed;
-        Player.MarkDirtySettings();
-        Player.SyncSettings();
-
-        Player.RpcSetColor((byte)PlayerColor);
-        SetRoleTextHeight(false);
+        IsCharging = false; ShowBeamMark = false; chargeTimer = 0f; HasHit = false; IsFiring = false;
+        _prevCharging = false; _prevBeamMark = false;
+        Main.AllPlayerSpeed[Player.PlayerId] = PlayerSpeed; Player.MarkDirtySettings(); Player.SyncSettings();
+        Player.RpcSetColor((byte)PlayerColor); SetRoleTextHeight(false);
     }
 
     public override void AfterMeetingTasks()
     {
-        if (!AmongUsClient.Instance.AmHost) return;
-        if (!Player.IsAlive()) return;
-
+        if (!AmongUsClient.Instance.AmHost || !Player.IsAlive()) return;
         AURoleOptions.PhantomCooldown = Cooldown;
         Player.RpcResetAbilityCooldown();
     }
@@ -430,13 +298,7 @@ public sealed class HadouHo : RoleBase, IImpostor, IUsePhantomButton
 
     public override void ReceiveRPC(MessageReader reader)
     {
-        if (reader.Length - reader.Position == 2)
-        {
-            reader.ReadByte();
-            BeamFacingLeft = reader.ReadBoolean();
-            return;
-        }
-
+        if (reader.Length - reader.Position == 2) { reader.ReadByte(); BeamFacingLeft = reader.ReadBoolean(); return; }
         IsCharging = reader.ReadBoolean();
         ShowBeamMark = reader.ReadBoolean();
     }
@@ -444,132 +306,55 @@ public sealed class HadouHo : RoleBase, IImpostor, IUsePhantomButton
     public override bool GetTemporaryName(ref string name, ref bool NoMarker, bool isForMeeting, PlayerControl seer, PlayerControl seen = null)
     {
         seen ??= seer;
-
-        if (!Player.IsAlive() || isForMeeting)
-            return false;
-
+        if (!Player.IsAlive() || isForMeeting) return false;
         string myColor = "#" + ColorUtility.ToHtmlStringRGB(Palette.PlayerColors[Player.Data.DefaultOutfit.ColorId]);
 
         if (IsCharging && seen.PlayerId == Player.PlayerId)
         {
-            bool facingLeft = BeamFacingLeft;
-            if (seer.PlayerId == Player.PlayerId)
-                facingLeft = Player.cosmetics.FlipX;
-
+            bool fl = seer.PlayerId == Player.PlayerId ? Player.cosmetics.FlipX : BeamFacingLeft;
             string bigStar = $"<size=800%><color={myColor}>★</color></size>";
             string blank = "　　　";
-            string text = facingLeft ? bigStar + blank : blank + bigStar;
-            name = "<line-height=1200%>\n" + text + "</line-height>";
-            NoMarker = true;
-            return true;
+            name = "<line-height=1200%>\n" + (fl ? bigStar + blank : blank + bigStar) + "</line-height>";
+            NoMarker = true; return true;
         }
 
         if (seen == seer && Is(seer) && !seer.IsModClient() && (IsCharging || ShowBeamMark))
         {
-            if (ShowBeamMark && seen.PlayerId == Player.PlayerId)
-            {
-                SetRoleTextHeight(true);
-
-                bool facingLeft = BeamFacingLeft;
-                string star = $"<voffset=0.35em><size=800%><color={myColor}>★</color></size></voffset>";
-                string beamBlock = BuildBeamBlock();
-                string blank800 = "<size=1200%>　</size>";
-                string starWithBlank = facingLeft ? star + blank800 : blank800 + star;
-                string longBeam;
-
-                if (facingLeft)
-                {
-                    longBeam = "";
-                    for (int i = 0; i < 2; i++) longBeam += beamBlock;
-                    longBeam += starWithBlank;
-                }
-                else
-                {
-                    longBeam = starWithBlank;
-                    for (int i = 0; i < 2; i++) longBeam += beamBlock;
-                }
-
-                string hugeBlank = "<alpha=#00>" + new string('　', 10) + "</alpha>";
-                string lineStart = "<line-height=4300%>\n";
-                string sizeStart = "<size=5000%>";
-                string sizeEnd = "</size></line-height>";
-
-                if (facingLeft)
-                    name = lineStart + $"{sizeStart}{longBeam}{sizeEnd}" + $"{sizeStart}{hugeBlank}{sizeEnd}";
-                else
-                    name = lineStart + $"{sizeStart}{hugeBlank}{sizeEnd}" + $"{sizeStart}{longBeam}{sizeEnd}";
-
-                NoMarker = true;
-                return true;
-            }
-
+            if (ShowBeamMark && seen.PlayerId == Player.PlayerId) { BuildBeamName(ref name, myColor, false); NoMarker = true; return true; }
             return false;
         }
 
         if (ShowBeamMark && seen.PlayerId == Player.PlayerId)
         {
             SetRoleTextHeight(true);
-
-            bool facingLeft = BeamFacingLeft;
-            string star = $"<voffset=0.35em><size=800%><color={myColor}>★</color></size></voffset>";
-            string beamBlock = BuildBeamBlock();
-            string blank800 = "<size=1200%>　</size>";
-            string starWithBlank = facingLeft ? star + blank800 : blank800 + star;
-            string longBeam;
-
-            if (facingLeft)
-            {
-                longBeam = "";
-                for (int i = 0; i < 2; i++) longBeam += beamBlock;
-                longBeam += starWithBlank;
-            }
-            else
-            {
-                longBeam = starWithBlank;
-                for (int i = 0; i < 2; i++) longBeam += beamBlock;
-            }
-
-            string hugeBlank = "<alpha=#00>" + new string('　', 10) + "</alpha>";
-            string lineStart = "<line-height=5300%>\n";
-            string sizeStart = "<size=5000%>";
-            string sizeEnd = "</size></line-height>";
-
-            if (facingLeft)
-                name = lineStart + $"{sizeStart}{longBeam}{sizeEnd}" + $"{sizeStart}{hugeBlank}{sizeEnd}";
-            else
-                name = lineStart + $"{sizeStart}{hugeBlank}{sizeEnd}" + $"{sizeStart}{longBeam}{sizeEnd}";
-
-            NoMarker = true;
-            return true;
+            BuildBeamName(ref name, myColor, true);
+            NoMarker = true; return true;
         }
-
         return false;
+    }
+
+    void BuildBeamName(ref string name, string myColor, bool wider)
+    {
+        SetRoleTextHeight(true);
+        bool fl = BeamFacingLeft;
+        string star = $"<voffset=0.35em><size=800%><color={myColor}>★</color></size></voffset>";
+        string beam = BuildBeamBlock();
+        string blank = "<size=1200%>　</size>";
+        string starBlank = fl ? star + blank : blank + star;
+        string longBeam = fl ? beam + beam + starBlank : starBlank + beam + beam;
+        string hugeBlank = "<alpha=#00>" + new string('　', 10) + "</alpha>";
+        string ls = wider ? "<line-height=5300%>\n" : "<line-height=4300%>\n";
+        string ss = "<size=5000%>", se = "</size></line-height>";
+        name = fl
+            ? ls + $"{ss}{longBeam}{se}{ss}{hugeBlank}{se}"
+            : ls + $"{ss}{hugeBlank}{se}{ss}{longBeam}{se}";
     }
 
     string BuildBeamBlock()
     {
-        switch ((BeamColorMode)BeamColorModeValue)
-        {
-            case BeamColorMode.Single:
-                return
-                    "<color=#00CFFF>━</color>" +
-                    "<color=#00CFFF>━</color>" +
-                    "<color=#00CFFF>━</color>" +
-                    "<color=#00CFFF>━</color>" +
-                    "<color=#00CFFF>━</color>" +
-                    "<color=#00CFFF>━</color>" +
-                    "<color=#00CFFF>━</color>";
-            default:
-            case BeamColorMode.Rainbow:
-                return
-                    "<color=#ff0000>━</color>" +
-                    "<color=#ff7f00>━</color>" +
-                    "<color=#ffff00>━</color>" +
-                    "<color=#00ff00>━</color>" +
-                    "<color=#0000ff>━</color>" +
-                    "<color=#4b0082>━</color>" +
-                    "<color=#8b00ff>━</color>";
-        }
+        if ((BeamColorMode)BeamColorModeValue == BeamColorMode.Single)
+            return "<color=#00CFFF>━</color><color=#00CFFF>━</color><color=#00CFFF>━</color><color=#00CFFF>━</color><color=#00CFFF>━</color><color=#00CFFF>━</color><color=#00CFFF>━</color>";
+        return "<color=#ff0000>━</color><color=#ff7f00>━</color><color=#ffff00>━</color><color=#00ff00>━</color><color=#0000ff>━</color><color=#4b0082>━</color><color=#8b00ff>━</color>";
     }
 
     public override string GetLowerText(PlayerControl seer, PlayerControl seen = null, bool isForMeeting = false, bool isForHud = false)
@@ -577,28 +362,15 @@ public sealed class HadouHo : RoleBase, IImpostor, IUsePhantomButton
         seen ??= seer;
         if (seen.PlayerId != seer.PlayerId || isForMeeting || !Player.IsAlive()) return "";
         if (!IsCharging) return $"{(isForHud ? "" : "<size=60%>")}<color=#ff0000>ファントムボタン → チャージ発射</color>";
-        var remaining = ChargeTime - chargeTimer;
-        return $"{(isForHud ? "" : "<size=60%>")}<color=#ff0000><color=#ff0000>チャージ中... {remaining:F1}s</color>";
+        return $"{(isForHud ? "" : "<size=60%>")}<color=#ff0000>チャージ中... {(ChargeTime - chargeTimer):F1}s</color>";
     }
 
     public string GetLowerTextOthers(PlayerControl seer, PlayerControl seen = null, bool isForMeeting = false, bool isForHud = false)
     {
         seen ??= seer;
-        if (seen != seer) return "";
-        if (isForMeeting) return "";
-        if (!Player.IsAlive()) return "";
-
-        if (IsCharging && seer.PlayerId != Player.PlayerId)
-        {
-            var remaining = ChargeTime - chargeTimer;
-            return $"<color=#ff0000>チャージ中... {(int)remaining}s</color>";
-        }
-
-        if (ShowBeamMark && seer.PlayerId != Player.PlayerId)
-        {
-            return "<color=#ff0000>ビーム中</color>";
-        }
-
+        if (seen != seer || isForMeeting || !Player.IsAlive()) return "";
+        if (IsCharging && seer.PlayerId != Player.PlayerId) return $"<color=#ff0000>チャージ中... {(int)(ChargeTime - chargeTimer)}s</color>";
+        if (ShowBeamMark && seer.PlayerId != Player.PlayerId) return "<color=#ff0000>ビーム中</color>";
         return "";
     }
 

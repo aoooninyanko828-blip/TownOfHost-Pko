@@ -20,6 +20,7 @@ namespace TownOfHost
         StandardHAS,//= 0x04
         SuddenDeath,//= 0x05
         MurderMystery,//= 0x06
+        DummyBattleRoyale,//= 0x07
         All = int.MaxValue
     }
 
@@ -31,6 +32,7 @@ namespace TownOfHost
         TaskBattle,//タスクバトルMode
         SuddenDeath,//サドンデス(Sta)
         MurderMystery,
+        DummyBattleRoyale,
         StandardHAS,//役職入りかくれんぼ(Sta)
         Role,//役職設定
         GameOption,//ゲーム設定
@@ -94,7 +96,7 @@ namespace TownOfHost
 
         public static readonly string[] gameModes =
         {
-            "Standard", "HideAndSeek","TaskBattle","StandardHAS","SuddenDeath","MurderMystery",
+            "Standard", "HideAndSeek","TaskBattle","StandardHAS","SuddenDeath","MurderMystery","DummyBattleRoyale",
         };
 
         // MapActive
@@ -635,6 +637,7 @@ namespace TownOfHost
             //最初のオプションのみここ
             SuddenDeathMode.CreateOption();
             MurderMystery.SetUpMurderMysteryOption();
+            DummyBattleRoyaleManager.SetupOptionItem();
             ObjectOptionitem.Create(1_000_121, "StandardHAS", true, null, TabGroup.MainSettings).SetOptionName(() => "Standard HAS").SetColorcode("#ecff41ff").SetTag(CustomOptionTags.StandardHAS);
             StandardHASWaitingTime = FloatOptionItem.Create(100007, "StandardHASWaitingTime", new(0f, 180f, 2.5f), 10f, TabGroup.MainSettings, false)
                 .SetValueFormat(OptionFormat.Seconds).SetTag(CustomOptionTags.StandardHAS).SetHeader(true);

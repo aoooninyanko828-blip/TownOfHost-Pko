@@ -1,5 +1,3 @@
-
-
 using System.Collections.Generic;
 
 namespace TownOfHost;
@@ -49,6 +47,11 @@ class GameModeManager
                 break;
             case CustomGameMode.MurderMystery:
                 result.Add(CustomOptionTags.MurderMystery);
+                result.Add(CustomOptionTags.GameOption);
+                result.Add(CustomOptionTags.OtherOption);
+                break;
+            case CustomGameMode.DummyBattleRoyale:
+                result.Add(CustomOptionTags.DummyBattleRoyale);
                 result.Add(CustomOptionTags.GameOption);
                 result.Add(CustomOptionTags.OtherOption);
                 break;

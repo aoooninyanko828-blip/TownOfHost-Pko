@@ -51,11 +51,25 @@ public class ModNewsHistory
                 var news = new ModNews
                 {
                     Number = 100067,
+                    Title = "波動砲、波動砲ジャッカルを超超超！大幅軽量化しました！！！",
+                    SubTitle = "<color=#FF9631>Town Of Host-Pko v3.25.11.43</color>",
+                    ShortTitle = "<color=#FF9631>●TOH-Pko v3.25.11.43</color>",
+                    Text = "・あとシーアの霊魂が正常に表示されるようになりました！(みっちーくんあざす)\n"
+                    ,
+                    Date = "2026-4-29"
+                };
+                AllModNews.Add(news);
+            }
+            {
+                var news = new ModNews
+                {
+                    Number = 100067,
                     Title = "Zzz...",
                     SubTitle = "<color=#FF9631>Town Of Host-Pko v3.25.11.42</color>",
                     ShortTitle = "<color=#FF9631>●TOH-Pko v3.25.11.42</color>",
                     Text = "・忘却者の修正\n"
                     + "・フレンド招待機能の削除\n"
+                    + "・波動砲、波動砲ジャッカルの軽量化\n"
                     ,
                     Date = "2026-4-29"
                 };

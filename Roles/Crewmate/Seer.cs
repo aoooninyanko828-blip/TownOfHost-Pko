@@ -64,7 +64,7 @@ public sealed class Seer : RoleBase, IKillFlashSeeable
     static OptionItem OptionShowSoul;
     static bool ShowSoul;
     private readonly List<SoulObject> SoulObjects;
-    private readonly List<(Vector2 pos, int colorId, string playerName)> PendingDeadBodies;
+    private readonly List<(byte playerId, Vector2 pos, int colorId, string playerName)> PendingDeadBodies;
 
     enum OptionName
     {
@@ -169,18 +169,28 @@ public sealed class Seer : RoleBase, IKillFlashSeeable
         if (!Player.IsAlive()) return;
         if (target == null) return;
 
-        var deadBody = UnityEngine.Object.FindObjectsOfType<DeadBody>()
-            .FirstOrDefault(db => db.ParentId == target.PlayerId);
+        // 全ての死体を霊魂に
+        foreach (var deadBody in UnityEngine.Object.FindObjectsOfType<DeadBody>())
+        {
+            var deadPlayer = GetPlayerById(deadBody.ParentId);
+            var deadInfo = deadPlayer?.Data;
+            if (deadInfo == null) continue;
 
-        Vector2 pos = deadBody != null
-            ? (Vector2)deadBody.transform.position
-            : (GetPlayerById(target.PlayerId)?.GetTruePosition() ?? Vector2.zero);
+            AddPendingSoul(
+                deadInfo.PlayerId,
+                deadBody.transform.position,
+                deadInfo.DefaultOutfit.ColorId,
+                deadInfo.PlayerName
+            );
+        }
 
-        string playerName = target.PlayerName;
-        int colorId = target.DefaultOutfit.ColorId;
-
-        if (!PendingDeadBodies.Exists(d => d.playerName == playerName))
-            PendingDeadBodies.Add((pos, colorId, playerName));
+        var fallbackPos = GetPlayerById(target.PlayerId)?.GetTruePosition() ?? Vector2.zero;
+        AddPendingSoul(
+            target.PlayerId,
+            fallbackPos,
+            target.DefaultOutfit.ColorId,
+            target.PlayerName
+        );
     }
 
     public override void AfterMeetingTasks()
@@ -197,7 +207,7 @@ public sealed class Seer : RoleBase, IKillFlashSeeable
         // ★ 複数霊魂を0.6秒ずつずらしてスポーン（キュー競合防止）
         for (int i = 0; i < PendingDeadBodies.Count; i++)
         {
-            var (pos, colorId, playerName) = PendingDeadBodies[i];
+            var (_, pos, colorId, playerName) = PendingDeadBodies[i];
             int idx = i;
             _ = new LateTask(() =>
             {
@@ -214,6 +224,12 @@ public sealed class Seer : RoleBase, IKillFlashSeeable
     {
         foreach (var soul in SoulObjects) soul?.Despawn();
         SoulObjects.Clear();
+    }
+
+    private void AddPendingSoul(byte playerId, Vector2 pos, int colorId, string playerName)
+    {
+        if (PendingDeadBodies.Exists(d => d.playerId == playerId)) return;
+        PendingDeadBodies.Add((playerId, pos, colorId, playerName));
     }
 
     public override string GetProgressText(bool comms = false, bool GameLog = false)

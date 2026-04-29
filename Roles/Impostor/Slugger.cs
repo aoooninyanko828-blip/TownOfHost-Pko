@@ -22,7 +22,7 @@ public sealed class Slugger : RoleBase, IImpostor, IUsePhantomButton
             "slg",
             OptionSort: (3, 13),
             from: From.SuperNewRoles
-            
+
         );
 
     public Slugger(PlayerControl player)
@@ -129,9 +129,7 @@ public sealed class Slugger : RoleBase, IImpostor, IUsePhantomButton
         IsCharging = true;
         chargeTimer = 0f;
 
-        // チャージ中は動けない
-        Main.AllPlayerSpeed[Player.PlayerId] = Main.MinSpeed;
-        Player.MarkDirtySettings();
+        // ★チャージ中も移動できるように速度固定の処理を削除
 
         // キルクールを長くして誤発防止
         Main.AllPlayerKillCooldown[Player.PlayerId] = 60f;
@@ -217,7 +215,10 @@ public sealed class Slugger : RoleBase, IImpostor, IUsePhantomButton
 
         var myPos = (Vector2)Player.GetTruePosition();
         Vector2 swingDir = SwingFacingLeft ? Vector2.left : Vector2.right;
-        bool hitAny = false;
+        // 向きに対して垂直なベクトル（上下の厚み判定用）
+        Vector2 perpendicular = new Vector2(-swingDir.y, swingDir.x);
+
+        bool hitAny = false; // ★エラー回避のための変数宣言
 
         foreach (var target in PlayerCatch.AllAlivePlayerControls)
         {
@@ -225,19 +226,17 @@ public sealed class Slugger : RoleBase, IImpostor, IUsePhantomButton
 
             var toTarget = (Vector2)target.GetTruePosition() - myPos;
 
-            // ★ 前方判定（向いている方向の前方90度以内）
-            if (Vector2.Dot(toTarget.normalized, swingDir) < 0.3f) continue;
+            // ★ 「ー」の形に合わせた長方形判定
+            float forwardDist = Vector2.Dot(toTarget, swingDir);       // 前方の距離
+            float sideDist = Mathf.Abs(Vector2.Dot(toTarget, perpendicular)); // 軸からのズレ
 
-            // ★ 距離判定
-            if (toTarget.magnitude > KillRange) continue;
+            // 前方は KillRange 以内、横幅は左右に 1.0f（合計 2.0f）の範囲ならヒット
+            if (forwardDist < 0 || forwardDist > KillRange) continue;
+            if (sideDist > 1.0f) continue;
 
-            // ★ 吹き飛ばし位置を計算（壁考慮）
             var flyPos = CalcFlyPosition(target.GetTruePosition(), swingDir);
-
-            // ★ ワープで吹き飛ばし
             target.NetTransform.SnapTo(flyPos);
 
-            // ★ 少し待ってからキル（スプライトが飛んでいく演出）
             var t = target;
             _ = new LateTask(() =>
             {
@@ -258,8 +257,6 @@ public sealed class Slugger : RoleBase, IImpostor, IUsePhantomButton
     // ★ 壁を考慮した吹き飛ばし位置
     private Vector2 CalcFlyPosition(Vector2 startPos, Vector2 dir)
     {
-        // 【変更前】 Constants.ShadowAndShipLayerMask
-        // 【変更後】 Constants.ShipOnlyMask に書き換え
         var hit = Physics2D.Raycast(startPos + dir * 0.3f, dir, FlyDistance,
             Constants.ShipOnlyMask);
 
@@ -278,9 +275,7 @@ public sealed class Slugger : RoleBase, IImpostor, IUsePhantomButton
         chargeTimer = 0f;
         swingTimer = 0f;
 
-        Main.AllPlayerSpeed[Player.PlayerId] = PlayerSpeed;
-        Player.MarkDirtySettings();
-        Player.SyncSettings();
+        // ★速度リセット処理を削除（チャージ中も移動できるようにしたため）
 
         _ = new LateTask(() =>
         {
@@ -321,41 +316,36 @@ public sealed class Slugger : RoleBase, IImpostor, IUsePhantomButton
     {
         seen ??= seer;
         if (!Player.IsAlive() || isForMeeting) return false;
-        if (seen.PlayerId != Player.PlayerId) return false; // スラッガー自身の名前を変更
+        if (seen.PlayerId != Player.PlayerId) return false;
         if (!IsCharging && !IsSwinging) return false;
-
-        // スラッガーの生名前（タグなし）
-        string rawName = Main.AllPlayerNames.TryGetValue(Player.PlayerId, out var n)
-            ? n.RemoveHtmlTags() : Player.Data.PlayerName.RemoveHtmlTags();
 
         bool facingLeft = (seer.PlayerId == Player.PlayerId)
             ? Player.cosmetics.FlipX
             : SwingFacingLeft;
 
+        // ★ 垂直(90度)から15度傾けた角度
+        // 右向きの時は、後ろ(左)に15度傾く = 105度
+        // 左向きの時は、後ろ(右)に15度傾く = 75度
+        float readyAngle = facingLeft ? 75f : 105f;
+
         if (IsCharging)
         {
-            // ★ チャージ中：名前をゆっくり持ち上げる（rotate 0→80）
-            float progress = Mathf.Clamp01(chargeTimer / ChargeTime);
-            int angle = (int)Mathf.Lerp(0f, 80f, progress);
-            // 左向きなら反転
-            if (facingLeft) angle = -angle;
-
-            name = $"<line-height=600%>\n<size=400%><rotate={angle}>" +
-                   $"<color=#ff6600>{rawName}</color></rotate></size>";
+            // チャージ中は「｜」を15度傾けた状態で固定
+            name = $"<voffset=-1.5em><size=600%><rotate={(int)readyAngle}><color=#ff6600>ー</color></rotate></size></voffset>";
             NoMarker = true;
             return true;
         }
 
         if (IsSwinging)
         {
-            // ★ 振り抜き中：大きく回転（80→-90）
+            // ★ 振り抜き中（約180度前方にスイングする）
             float progress = Mathf.Clamp01(swingTimer / SwingTime);
-            int angle = (int)Mathf.Lerp(80f, -90f, progress);
-            if (facingLeft) angle = -angle;
 
-            // 振り抜き時は大きく・赤く
-            name = $"<line-height=900%>\n<size=700%><rotate={angle}>" +
-                   $"<color=#ff2200><b>{rawName}</b></color></rotate></size>";
+            // 振り抜いた後の角度（右向きなら-75度、左向きなら255度の方向へ下ろす）
+            float endAngle = facingLeft ? 255f : -75f;
+            int angle = (int)Mathf.Lerp(readyAngle, endAngle, progress);
+
+            name = $"<voffset=-1.5em><size=800%><rotate={angle}><color=#ff2200><b>ー</b></color></rotate></size></voffset>";
             NoMarker = true;
             return true;
         }

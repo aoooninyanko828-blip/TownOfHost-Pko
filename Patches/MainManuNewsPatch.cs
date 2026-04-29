@@ -50,6 +50,20 @@ public class ModNewsHistory
             {
                 var news = new ModNews
                 {
+                    Number = 100067,
+                    Title = "Zzz...",
+                    SubTitle = "<color=#FF9631>Town Of Host-Pko v3.25.11.42</color>",
+                    ShortTitle = "<color=#FF9631>●TOH-Pko v3.25.11.42</color>",
+                    Text = "・忘却者の修正\n"
+                    + "・フレンド招待機能の削除\n"
+                    ,
+                    Date = "2026-4-29"
+                };
+                AllModNews.Add(news);
+            }
+            {
+                var news = new ModNews
+                {
                     Number = 100066,
                     Title = "だいぶバグが減ってきた実感があるじぇ",
                     SubTitle = "<color=#FF9631>Town Of Host-Pko v3.25.11.41</color>",

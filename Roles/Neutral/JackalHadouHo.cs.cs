@@ -290,6 +290,10 @@ public sealed class JackalHadouHo : RoleBase, ILNKiller, IUsePhantomButton, ISel
             Utils.AllPlayerKillFlash();
         }
 
+        // ★ボタンを押した時に「1回だけ」移動速度を最低にする
+        Main.AllPlayerSpeed[Player.PlayerId] = Main.MinSpeed;
+        Player.MarkDirtySettings();
+
         Main.AllPlayerKillCooldown[Player.PlayerId] = 60f;
         Player.SetKillCooldown(60f);
         _ = new LateTask(() => { Player.SyncSettings(); }, 0.1f, "JackalHadouHoKillTimer", true);
@@ -301,7 +305,6 @@ public sealed class JackalHadouHo : RoleBase, ILNKiller, IUsePhantomButton, ISel
         UtilsNotifyRoles.NotifyRoles(OnlyMeName: true);
         SendRpc();
     }
-
 
     void StartSuperChargeFlashLoop()
     {
@@ -350,8 +353,11 @@ public sealed class JackalHadouHo : RoleBase, ILNKiller, IUsePhantomButton, ISel
         HasHit = false;
         IsFiring = false;
         IsSuperBeam = false;
+
+        // ★ 足の速度を戻す
         Main.AllPlayerSpeed[Player.PlayerId] = PlayerSpeed;
         Player.MarkDirtySettings();
+
         Player.SyncSettings();
         Player.RpcSetColor((byte)PlayerColor);
         SetRoleTextHeight(false);
@@ -438,17 +444,7 @@ public sealed class JackalHadouHo : RoleBase, ILNKiller, IUsePhantomButton, ISel
             UtilsNotifyRoles.NotifyRoles(ForceLoop: true);
         }
 
-        if (IsCharging && !IsDead)
-        {
-            Main.AllPlayerSpeed[Player.PlayerId] = Main.MinSpeed;
-            Player.MarkDirtySettings();
-        }
-
-        if (IsSuperCharging && !IsDead)
-        {
-            Main.AllPlayerSpeed[Player.PlayerId] = Main.MinSpeed;
-            Player.MarkDirtySettings();
-        }
+        // ★ 激重だった移動速度の毎フレーム更新処理だけを完全に削除しています
 
         if (ShowBeamMark && Player.IsAlive())
             ApplyBeamHit();

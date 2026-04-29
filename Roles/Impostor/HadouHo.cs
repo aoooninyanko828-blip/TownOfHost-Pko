@@ -140,9 +140,12 @@ public sealed class HadouHo : RoleBase, IImpostor, IUsePhantomButton
         if (!Player.IsAlive() || IsCharging) return;
 
         IsFiring = true;
-
         IsCharging = true;
         chargeTimer = 0f;
+
+        // ★ボタンを押した時に「1回だけ」移動速度を最低にする
+        Main.AllPlayerSpeed[Player.PlayerId] = Main.MinSpeed;
+        Player.MarkDirtySettings();
 
         Utils.AllPlayerKillFlash();
 
@@ -187,7 +190,7 @@ public sealed class HadouHo : RoleBase, IImpostor, IUsePhantomButton
             {
                 if (beaming)
                 {
-                    roleText.text = "<alpha=#00>縲</alpha>";
+                    roleText.text = "<alpha=#00>縲€</alpha>";
                     roleTextTransform.SetLocalY(0.35f);
                 }
                 else
@@ -241,16 +244,7 @@ public sealed class HadouHo : RoleBase, IImpostor, IUsePhantomButton
             UtilsNotifyRoles.NotifyRoles(ForceLoop: true);
         }
 
-        if (IsCharging && !IsDead)
-        {
-            Main.AllPlayerSpeed[Player.PlayerId] = PlayerSpeed;
-            Player.MarkDirtySettings();
-            if (Player.IsAlive())
-            {
-                Main.AllPlayerSpeed[Player.PlayerId] = Main.MinSpeed;
-                Player.MarkDirtySettings();
-            }
-        }
+        // ★激重だった移動速度の毎フレーム更新を削除
 
         if (ShowBeamMark && Player.IsAlive())
         {
@@ -294,6 +288,7 @@ public sealed class HadouHo : RoleBase, IImpostor, IUsePhantomButton
                 ShowBeamMark = false;
                 SetRoleTextHeight(false);
                 IsFiring = false;
+                // ★撃ち終わった時に速度を元に戻す
                 Main.AllPlayerSpeed[Player.PlayerId] = PlayerSpeed;
                 Player.MarkDirtySettings();
                 Player.RpcSetColor((byte)PlayerColor);
@@ -310,6 +305,7 @@ public sealed class HadouHo : RoleBase, IImpostor, IUsePhantomButton
             if (!HasHit && SelfDestructOnMiss)
             {
                 Player.RpcSetColor((byte)PlayerColor);
+                // ★撃ち終わった時に速度を元に戻す
                 Main.AllPlayerSpeed[Player.PlayerId] = PlayerSpeed;
                 Player.MarkDirtySettings();
 
@@ -321,6 +317,7 @@ public sealed class HadouHo : RoleBase, IImpostor, IUsePhantomButton
             }
 
             Player.RpcSetColor((byte)PlayerColor);
+            // ★撃ち終わった時に速度を元に戻す
             Main.AllPlayerSpeed[Player.PlayerId] = PlayerSpeed;
             Player.MarkDirtySettings();
 
@@ -380,6 +377,7 @@ public sealed class HadouHo : RoleBase, IImpostor, IUsePhantomButton
         HasHit = false;
         IsFiring = false;
 
+        // ★キャンセルされた時に速度を元に戻す
         Main.AllPlayerSpeed[Player.PlayerId] = PlayerSpeed;
         Player.MarkDirtySettings();
         Player.SyncSettings();
@@ -398,6 +396,7 @@ public sealed class HadouHo : RoleBase, IImpostor, IUsePhantomButton
         HasHit = false;
         IsFiring = false;
 
+        // ★キャンセルされた時に速度を元に戻す
         Main.AllPlayerSpeed[Player.PlayerId] = PlayerSpeed;
         Player.MarkDirtySettings();
         Player.SyncSettings();

@@ -407,6 +407,7 @@
 "ReverserInfo","Reverse everyone's controls","全員の操作を反転させよう"
 "ChaserInfo","I will chase you to the ends of the earth.","地の果てまで追いかける…","","","",""
 "EvilSantaInfo","Evil Santa","イビルサンタ"
+"Samurai","Samurai","侍"
 "#ImpostorInfo"
 
 "# マッドメイト系役職"
@@ -690,6 +691,7 @@
 "UnFortunerInfoLong","An Impostor who can grant attributes.\nThe kill target at the moment the Phantom button is used will receive a random attribute at the start of the next meeting.\n\nIf 'Grant one attribute per use' is ON, or if no overwrite attributes are configured, one random attribute is applied.\nOtherwise, all configured attributes are applied.","属性を付与することのできるインポスター。\nファントムボタンを使用した時のキルターゲットに\n次会議開始時、ランダムで属性を付与する。\n\n'1回使用で属性を1つ渡す'がON、または上書きする付与属性が未設定の場合は、ランダムで1つ。\nそれ以外の場合は設定した属性が全て付与される。"
 "ReverserInfoLong","A single click button can reverse the controls of all players for a certain period of time.","ワンクリックボタンで全てのプレイヤーの操作を一定時間反転できる。"
 "ChaserInfoLong","A role that allows you to warp by transforming.\nDetects a nearby vent with a transformed target and warps there.\nYou can also return to the original position in the settings.\nIt would be funny if there were other players in front of you.\n","近くに移動したいターゲットをシェイプボタンで選択すると、そのターゲットから一番近いベントにワープすることができる。ワープ時、他視点からチェイサーはそのベントから出てきたように見える(ベント開閉あり)。\n元の位置に戻る設定がONの時、設定時間後に元居た場所の近くのベントに戻る。"
+"SamuraiInfoLong",samurai is very saikyou(?)","ファントムボタンを押し自分の前方にいるプレイヤーを範囲キルすることができます\n設定によりサボタージュやベントを使用することができません。"
 "#ImpostorInfoLong"
 
 "# マッドメイト系役職"
@@ -1565,6 +1567,9 @@
 "ChaserChaseMaxCount","Chase Max Count","チェイスの最大回数",
 "ChaserReturnPosition","Return Position After Chase","チェイス後、元の位置に戻る","返回原位","返回原位","Вернуться в исходное положение","Retornar à posição original"
 "ChaserPositionTime","Time to return to original position","元の位置に戻るまでの時間","几秒钟后返回原来位置","多少秒後它會回到原來的位置","Через сколько секунд он вернется в исходное положение","Depois de quantos segundos ele retornará à sua posição original"
+"SamuraiAbilityButtonText","Samurai Slash","必殺技"
+"SamuraiLowerText","Front Area Slash","前方範囲キル"
+"SamuraiSlashRange","Samurai Slash Range","必殺技の範囲"
 
 "## MadMate Role Setting"
 "MadmateOption","MadMate Options","マッドメイト系役職の設定"

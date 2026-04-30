@@ -1,5 +1,6 @@
 using AmongUs.GameOptions;
 using HarmonyLib;
+using Hazel;
 using TownOfHost.Modules;
 using TownOfHost.Roles.Core;
 using TownOfHost.Roles.Core.Interfaces;
@@ -20,8 +21,7 @@ public sealed class Chatter : RoleBase
             SetupOptionItem,
             "ct",
             "#FF66B2",
-            (5, 0),
-            from: From.SuperNewRoles
+            (5, 0)
         );
 
     public Chatter(PlayerControl player) : base(RoleInfo, player, () => HasTask.False)
@@ -41,7 +41,7 @@ public sealed class Chatter : RoleBase
     {
         SoloWinOption.Create(RoleInfo, 9, defo: 15);
 
-        OptionChatTimeLimit = FloatOptionItem.Create(RoleInfo, 10, "ChatterTimeLimit", new(10f, 120f, 5f), 30f, false)
+        OptionChatTimeLimit = FloatOptionItem.Create(RoleInfo, 10, "ChatterTimeLimit", new(5f, 120f, 2.5f), 20f, false)
             .SetOptionName(() => "チャット制限時間")
             .SetValueFormat(OptionFormat.Seconds);
     }
@@ -60,24 +60,37 @@ public sealed class Chatter : RoleBase
 
     public override void OnFixedUpdate(PlayerControl player)
     {
-        if (!AmongUsClient.Instance.AmHost) return;
+    }
+
+    public void UpdateMeetingTimer()
+    {
         if (!Player.IsAlive()) return;
+        if (MeetingHud.Instance == null || (int)MeetingHud.Instance.state >= 3) return;
 
-        if (MeetingHud.Instance == null) return;
-
-        if ((int)MeetingHud.Instance.state >= 3) return;
-
-        meetingActiveTimer += Time.fixedDeltaTime;
+        meetingActiveTimer += Time.deltaTime;
 
         if (meetingActiveTimer <= 10f) return;
 
-        timeSinceLastChat += Time.fixedDeltaTime;
+        timeSinceLastChat += Time.deltaTime;
 
-        if (timeSinceLastChat >= ChatTimeLimit)
+        if (AmongUsClient.Instance.AmHost && timeSinceLastChat >= ChatTimeLimit)
         {
+            string msg = $"<color=#FFCC00><b>【=== おい!!見ろ!!あいつが!! ===】</b></color>\n{UtilsName.GetPlayerColor(Player)}が急に意識を失った。\nどうしたんだろうな。";
+
+            MessageWriter writer = AmongUsClient.Instance.StartRpcImmediately(Player.NetId, (byte)RpcCalls.SendChat, SendOption.Reliable, -1);
+            writer.Write(msg);
+            AmongUsClient.Instance.FinishRpcImmediately(writer);
+
+            if (DestroyableSingleton<HudManager>.Instance && DestroyableSingleton<HudManager>.Instance.Chat)
+            {
+                DestroyableSingleton<HudManager>.Instance.Chat.AddChat(Player, msg);
+            }
+
             PlayerState.GetByPlayerId(Player.PlayerId).DeathReason = CustomDeathReason.Suicide;
             Player.RpcMurderPlayerV2(Player);
             UtilsGameLog.AddGameLog("Chatter", $"{UtilsName.GetPlayerColor(Player)} は無言に耐えきれず息絶えた");
+
+            timeSinceLastChat = -9999f;
         }
     }
 
@@ -135,6 +148,21 @@ public static class Chatter_RpcSendChat_Patch
         if (__instance.GetRoleClass() is Chatter chatter && __instance.IsAlive())
         {
             chatter.ResetTimer();
+        }
+    }
+}
+
+[HarmonyPatch(typeof(MeetingHud), nameof(MeetingHud.Update))]
+public static class Chatter_MeetingHud_Update_Patch
+{
+    public static void Postfix()
+    {
+        foreach (var pc in PlayerControl.AllPlayerControls)
+        {
+            if (pc.GetRoleClass() is Chatter chatter)
+            {
+                chatter.UpdateMeetingTimer();
+            }
         }
     }
 }

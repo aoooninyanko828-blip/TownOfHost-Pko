@@ -51,6 +51,92 @@
     "3.23.11.28": {
         "Unavailable": true,
         "NotAvailableOnline": false,
+<<<<<<< HEAD
         "AnnounceText": "Test Text"
+=======
+        "AnnounceText": "<size=2.5>バニラサーバーを使用すると正常に動作しません...\nローカル or カスタムサーバーをご利用ください。"
+    },
+    "51.14.31.23": {
+        "Unavailable": true,
+        "NotAvailableOnline": false,
+        "AnnounceText": "<size=2.5>バニラサーバーを使用すると正常に動作しません...\nローカル or カスタムサーバーをご利用ください。"
+    },
+    "51.14.31.24": {
+        "Unavailable": true,
+        "NotAvailableOnline": false,
+        "AnnounceText": "<size=2.5>バニラサーバーを使用すると正常に動作しません...\nローカル or カスタムサーバーをご利用ください。"
+    },
+    "51.14.31.25": {
+        "Unavailable": true,
+        "NotAvailableOnline": false,
+        "AnnounceText": "バニラサーバーを使用すると正常に動作しません...ローカル or カスタムサーバーをご利用ください。"
+    },
+    "51.14.31.26": {
+        "Unavailable": true,
+        "NotAvailableOnline": false
+    },
+    "51.14.31.27": {
+        "Unavailable": false,
+        "NotAvailableOnline": false,
+        "AnnounceText": "バニラサーバーを使用すると正常に動作しません...ローカル or カスタムサーバーをご利用ください。"
+    },
+    "51.14.31.28": {
+        "Unavailable": false,
+        "NotAvailableOnline": false,
+        "AnnounceText": "バニラサーバーを使用すると正常に動作しません...ローカル or カスタムサーバーをご利用ください。"
+    },
+    "51.14.31.29": {
+        "Unavailable": false,
+        "NotAvailableOnline": false,
+        "AnnounceText": "バニラサーバーを使用すると正常に動作しません...ローカル or カスタムサーバーをご利用ください。"
+    },
+    "51.14.31.31": {
+        "Unavailable": false,
+        "NotAvailableOnline": false
+    },
+    "51.14.31.32": {
+        "Unavailable": false,
+        "NotAvailableOnline": false
+    },
+    "51.14.32": {
+        "Unavailable": false,
+        "NotAvailableOnline": false
+    },
+    "51.14.32.11": {
+        "Unavailable": false,
+        "NotAvailableOnline": false
+    },
+    "51.14.32.12": {
+        "Unavailable": false,
+        "NotAvailableOnline": false
+    },
+    "51.14.32.13": {
+        "Unavailable": false,
+        "NotAvailableOnline": false
+    },
+    "51.14.32.14": {
+        "Unavailable": false,
+        "NotAvailableOnline": false
+    },
+    "51.14.32.15": {
+        "Unavailable": false,
+        "NotAvailableOnline": false
+    },
+    "51.14.32.16": {
+        "Unavailable": false,
+        "NotAvailableOnline": false
+    },
+    "51.14.32.17": {
+        "Unavailable": false,
+        "NotAvailableOnline": false
+    },
+    "51.14.32.21": {
+        "Unavailable": false,
+        "NotAvailableOnline": false
+    },
+    "51.14.32.22": {
+        "Unavailable": false,
+        "NotAvailableOnline": false
+>>>>>>> 609a9c88ae2f96c5393d6cc2ca2a60bb579a1fd6
     }
 }

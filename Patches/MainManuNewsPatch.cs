@@ -50,6 +50,22 @@ public class ModNewsHistory
             {
                 var news = new ModNews
                 {
+                    Number = 100068,
+                    Title = "4つめの新役だぜ！",
+                    SubTitle = "<color=#FF9631>Town Of Host-Pko v3.25.12.44</color>",
+                    ShortTitle = "<color=#FF9631>●TOH-Pko v3.25.12.44</color>",
+                    Text = "・侍の追加 From:SuperNewRoles\n"
+                    + "・TOHKのアプデに対応\n"
+                    + "・賢者の追加 From:SuperNewRoles (現在未翻訳、あと能力使用後も賢者ステップ健在()\n"
+                    + "・新役チャッターの追加\n"
+                    ,
+                    Date = "2026-4-30"
+                };
+                AllModNews.Add(news);
+            }
+            {
+                var news = new ModNews
+                {
                     Number = 100067,
                     Title = "波動砲、波動砲ジャッカルを超超超！大幅軽量化しました！！！",
                     SubTitle = "<color=#FF9631>Town Of Host-Pko v3.25.11.43</color>",

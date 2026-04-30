@@ -623,6 +623,7 @@ namespace TownOfHost
 
         public enum ModSystem
         {
+            KillDummy,
             SyncDeviceTimer,
             SyncRoomTimer,
             SyncSkinShuffle,
@@ -641,6 +642,22 @@ namespace TownOfHost
             Logger.Info($"Rpc-SyncModSystem-{type}", "RPC");
             switch (type)
             {
+                case ModSystem.KillDummy:
+                    {
+                        byte killerId = reader.ReadByte();
+                        uint dummyNetId = reader.ReadUInt32();
+
+                        var killer = PlayerCatch.GetPlayerById(killerId);
+                        var dummyCno = CustomNetObject.AllObjects
+                            .FirstOrDefault(o => o.PlayerControl?.NetId == dummyNetId);
+
+                        if (dummyCno is IKillableDummy kd && killer != null)
+                        {
+                            kd.OnKilled(killer);
+                            Logger.Info($"Dummy killed by {killer.Data.GetLogPlayerName()} via RPC", "KillDummy");
+                        }
+                    }
+                    break;
                 case ModSystem.SyncDeviceTimer:
                     DisableDevice.ReadMessage(reader);
                     break;

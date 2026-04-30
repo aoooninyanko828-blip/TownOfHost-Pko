@@ -82,6 +82,8 @@
 "EvilGuesser","EvilGuesser","イビルゲッサー"
 "Reverser","Reverser","リバーサー"
 "Chaser","Chaser","チェイサー","","","",""
+"EvilSanta","Evil Santa","イビルサンタ"
+"Samurai","Samurai","侍"
 "#ImpostorName"
 
 "# マッドメイト系役職"
@@ -162,6 +164,7 @@
 "Analyzer","Analyzer","アナライザー"
 "Medium","Medium","霊媒師","灵媒师","靈媒師","Медиум","Médium",""
 "NiceGuesser","NiGess","ナイスゲッサー"
+"Sage","Sage","賢者"
 "#CrewmateName"
 
 "# ニュートラル役職"
@@ -225,6 +228,7 @@
 "PavlovOwner","Pavlov's Owner","パブロフのオーナー","","","","",""
 "Moira","Moira","モイラ"
 "PoisonedBakery","PoisonedBakery","毒入りパン屋"
+"Chatter","Chatter","チャッター"
 "#NeutralName"
 
 "#コンビネーション役職"
@@ -406,8 +410,7 @@
 "UnFortunerInfo","Happiness for Only Impostors","幸せになりたい..."
 "ReverserInfo","Reverse everyone's controls","全員の操作を反転させよう"
 "ChaserInfo","I will chase you to the ends of the earth.","地の果てまで追いかける…","","","",""
-"EvilSantaInfo","Evil Santa","イビルサンタ"
-"Samurai","Samurai","侍"
+"SamuraiInfo","Let's rip the crew apart!","クルーを切り裂こう！","","","",""
 "#ImpostorInfo"
 
 "# マッドメイト系役職"
@@ -558,6 +561,7 @@
 "PavlovOwnerInfo","Imprint players to make Pavlov Dogs","私の犬になりなさい。","","","","",""
 "PavlovDogImprintInfo","You were imprinted into a Pavlov Dog","text","","","","",""
 "MoiraInfo","Fate is in my hands!","運命は私の手の中に！"
+"ChatterInfo","You need to speak up soon...","早く発言しないと..."
 "#NeutralInfo"
 
 "# HideAndSeek"
@@ -826,6 +830,7 @@
 "PavlovDogInfoLong","A neutral killer aligned with Team Pavlov.\nWins under Pavlov victory conditions.","通常キルをすることができる。\n\nオーナーが死亡した場合、暴走モードに入る。一定時間以内にキルをしないとその場で自爆してしまう。\n自爆タイマーはシェイプシフトクールで表される。\nまた、暴走モード中はキルクールが個別のものに切り替わる。\n勝利条件は\n・パブロフの犬が生存している。\n・パブロフ陣営以外のキル可能陣営を全滅させる。\n・クルーメイト(カウントされる役職)の人数を自陣営以下にする。","","","","",""
 "PavlovOwnerInfoLong","Use Imprint on a target to convert them into a Pavlov Dog.\nIf configured, imprinting an Impostor causes suicide.","キルボタンで相手をパブロフの犬にする。\nパブロフの犬が1人でも生きていると新しいパブロフの犬は作成できない。\n設定次第でインポスターに刷り込むと自爆する。","","","","",""
 "PoisonedBakery","","会議を挟む毎にランダムなプレイヤー１人に毒入りパンを提供する。そのプレイヤーは毒入りパン屋をそのターンに追放、ゲスしない限り、会議終了時に死亡する。最後まで生存していると単独勝利する。"
+"ChatterInfoLong","If you don't chat for the set amount of time, you die. The last one standing wins.","設定時間チャットしなかったら死亡する。生き残りで単独勝利。"
 "#NeutralInfoLong"
 
 "# ImpostorDescInfos"
@@ -1836,6 +1841,8 @@
 "TamaCanLoad","Loadable","装填できる"
 "CountKillerVictoryCount","Number of kills you can win","勝利に必要なキル数"
 "CountKillerAddWin","Add Win","追加勝利"
+"CountKillerAddWinToSoloWin","Add Win to Solo Win","追加勝利後に単独勝利へ移行"
+"CountKillerSoloVictoryCount","Solo Win Must Kills","単独勝利に必要なキル数"
 "DoppelGangerAddWinCount","Add Win Must Count","追加勝利に必要なカウント"
 "DoppelGangerSoloWinCount","Solo Win Must Count","単独勝利に必要なカウント"
 "DoppelGangerShapeCountUp","Shape count up","変身中に加算されるカウント"
@@ -1881,6 +1888,9 @@
 "FoxCrewTaskFin_Lose","Fox Lose","乗っ取らない"
 "FoxCrewTaskFin_NoGameEnd","No GameEnd(Taskfinish)","生存中、タスク完了でゲームを終わらせない"
 "FoxCrewTaskFin_Addwin","AddWin to crew","クルーと共に勝利する"
+"FoxCanSeeImposotr","Can See Imposotr","インポスターに開示する"
+"FoxCanSeeNeutralKiller","can see neutralkiller","ニュートラルキラーに開示する"
+"FoxCanSeeOtherKiller","Can See OtherKiller","その他のキラーに開示する"
 "SantaClausWinGivePresentCount","win Must Presennt","勝利に必要なプレゼント投下数"
 "SantaClausGivePresent","Give AddOn Present","一部アドオンをプレゼントする"
 "SantaClausMaxHavePresent","MaxHavePresent","同時にプレゼントを持てる数"
@@ -2731,7 +2741,7 @@
 "Log.PlagueDoctor","{0} => {1}%","{0}が{1}感染した..."
 "MadBetrayerLog","Betrayed Impostor.","インポスターを裏切った。"
 "StrawdollKilledLog","{0}","藁人形が{0}回切られた..."
-"MissioneerAddpoint","Mission Complete. Addpoint{0},Point:{1}","Mission Complete. {0}ポイント入手し、合計{1}ポイントとなった"
+"MissioneerAddpoint","Mission Complete. Addpoint{0},Point:{1}({2})","Mission Complete. {2}が{0}p入手し、計{1}pとなった"
 
 "## つーるちっぷ"
 "InsiderModeOptionInfo","Impostor Can See AllPlayer Role","<#ff1919>インポスター</color>が全員の役職を把握します"

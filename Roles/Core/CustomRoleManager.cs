@@ -898,6 +898,7 @@ public enum CustomRoles
     Santa,
     Rabbit,
     Nimrod,
+    Sage,
     //TOH-K
     Gasp,
     VentMaster,
@@ -1000,6 +1001,8 @@ public enum CustomRoles
     Strawdoll,
     Fool,
     TaskPlayerB,
+    //TOH-P
+    Chatter,
     //DEBUG only Neutral.
     //HideAndSeek
     HASFox,

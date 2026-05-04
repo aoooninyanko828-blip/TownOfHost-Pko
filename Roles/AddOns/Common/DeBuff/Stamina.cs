@@ -1,9 +1,13 @@
 using System.Collections.Generic;
-using AmongUs.GameOptions;
-using HarmonyLib;
+using System.Linq;
 using UnityEngine;
+using AmongUs.GameOptions;
+using Hazel;
+using HarmonyLib; // 復活！
+
 using TownOfHost.Roles.Core;
-using static TownOfHost.Options;
+using TownOfHost.Roles.Core.Interfaces;
+using static TownOfHost.Options; // 復活！
 
 namespace TownOfHost.Roles.AddOns.Common
 {
@@ -30,6 +34,10 @@ namespace TownOfHost.Roles.AddOns.Common
         private static readonly Dictionary<byte, bool> Initialized = new();
         private static readonly Dictionary<byte, float> NotifyTimer = new();
 
+        // ★ 倍率計算用のキャッシュ
+        private static readonly Dictionary<byte, float> BaseSpeed = new();
+        private static readonly Dictionary<byte, float> LastSetSpeed = new();
+
         public static void SetupCustomOption()
         {
             SetupRoleOptions(Id, TabGroup.Addons, CustomRoles.Stamina);
@@ -50,13 +58,17 @@ namespace TownOfHost.Roles.AddOns.Common
                 new(0.1f, 5f, 0.1f), 0.5f, TabGroup.Addons, false)
                 .SetSubRoleOptionItem(CustomRoles.Stamina);
 
+            // デフォルトを1.0x（本来のスピードの等倍）に変更
             OptionMaxSpeed = FloatOptionItem.Create(Id + 24, "StaminaMaxSpeed",
-                new(0.25f, 3f, 0.05f), 1.5f, TabGroup.Addons, false)
-                .SetSubRoleOptionItem(CustomRoles.Stamina);
+                new(0.25f, 3f, 0.05f), 1.0f, TabGroup.Addons, false)
+                .SetSubRoleOptionItem(CustomRoles.Stamina)
+                .SetValueFormat(OptionFormat.Multiplier);
 
+            // デフォルトを0.5x（本来のスピードの半減）に変更
             OptionSlowSpeed = FloatOptionItem.Create(Id + 25, "StaminaSlowSpeed",
                 new(0.1f, 2f, 0.05f), 0.5f, TabGroup.Addons, false)
-                .SetSubRoleOptionItem(CustomRoles.Stamina);
+                .SetSubRoleOptionItem(CustomRoles.Stamina)
+                .SetValueFormat(OptionFormat.Multiplier);
 
             OptionDrainThreshold = FloatOptionItem.Create(Id + 26, "StaminaDrainThreshold",
                 new(0f, 1f, 0.05f), 0.5f, TabGroup.Addons, false)
@@ -79,6 +91,8 @@ namespace TownOfHost.Roles.AddOns.Common
             LastPosition.Clear();
             Initialized.Clear();
             NotifyTimer.Clear();
+            BaseSpeed.Clear();
+            LastSetSpeed.Clear();
         }
 
         public static void Add(byte playerId)
@@ -90,7 +104,14 @@ namespace TownOfHost.Roles.AddOns.Common
             NotifyTimer[playerId] = 0f;
 
             if (AmongUsClient.Instance.AmHost)
-                SetSpeed(playerId, maxSpeed);
+            {
+                if (Main.AllPlayerSpeed.TryGetValue(playerId, out float spd))
+                    BaseSpeed[playerId] = spd;
+                else
+                    BaseSpeed[playerId] = Main.RealOptionsData.GetFloat(FloatOptionNames.PlayerSpeedMod);
+
+                SetSpeed(playerId, BaseSpeed[playerId] * maxSpeed);
+            }
         }
 
         public static void OnFixedUpdate(PlayerControl player)
@@ -108,7 +129,23 @@ namespace TownOfHost.Roles.AddOns.Common
             {
                 LastPosition[id] = currentPos;
                 Initialized[id] = true;
+
+                // ベース速度の初期化
+                if (Main.AllPlayerSpeed.TryGetValue(id, out float initialSpd))
+                    BaseSpeed[id] = initialSpd;
+                else
+                    BaseSpeed[id] = Main.RealOptionsData.GetFloat(FloatOptionNames.PlayerSpeedMod);
+
                 return;
+            }
+
+            // 外部（他の役職の効果など）からのスピード書き換えを検知してベース速度を更新する
+            if (Main.AllPlayerSpeed.TryGetValue(id, out float currentDictSpeed))
+            {
+                if (!Mathf.Approximately(currentDictSpeed, LastSetSpeed.GetValueOrDefault(id, -1f)))
+                {
+                    BaseSpeed[id] = currentDictSpeed;
+                }
             }
 
             float moved = Vector2.Distance(currentPos, LastPosition[id]);
@@ -127,11 +164,12 @@ namespace TownOfHost.Roles.AddOns.Common
                 CurrentStamina[id] = Mathf.Min(maxStamina, CurrentStamina[id]);
             }
 
-            // ★ スタミナ割合に応じて常に速度を滑らかに計算
-            // 満タン(1.0) → maxSpeed、ゼロ(0.0) → slowSpeed で線形補間
+            // ★ スタミナ割合に応じて現在の「本来のスピード（BaseSpeed）」に対する倍率を掛ける
             float ratio = CurrentStamina[id] / maxStamina;
-            float newSpeed = Mathf.Lerp(slowSpeed, maxSpeed, ratio);
-            SetSpeed(id, newSpeed);
+            float speedMultiplier = Mathf.Lerp(slowSpeed, maxSpeed, ratio);
+            float targetSpeed = BaseSpeed.GetValueOrDefault(id, 1f) * speedMultiplier;
+
+            SetSpeed(id, targetSpeed);
 
             NotifyTimer[id] += Time.fixedDeltaTime;
             if (NotifyTimer[id] >= 0.2f)
@@ -149,7 +187,6 @@ namespace TownOfHost.Roles.AddOns.Common
                 CurrentStamina[id] = maxStamina;
                 IsExhausted[id] = false;
                 Initialized[id] = false;
-                SetSpeed(id, maxSpeed);
             }
         }
 
@@ -163,7 +200,15 @@ namespace TownOfHost.Roles.AddOns.Common
                 CurrentStamina[id] = maxStamina;
                 IsExhausted[id] = false;
                 Initialized[id] = false;
-                SetSpeed(id, maxSpeed);
+
+                // 会議明けの最新のベース速度を取得
+                if (Main.AllPlayerSpeed.TryGetValue(id, out float spd))
+                    BaseSpeed[id] = spd;
+                else
+                    BaseSpeed[id] = Main.RealOptionsData.GetFloat(FloatOptionNames.PlayerSpeedMod);
+
+                float targetSpeed = BaseSpeed[id] * maxSpeed;
+                SetSpeed(id, targetSpeed);
             }
         }
 
@@ -171,12 +216,13 @@ namespace TownOfHost.Roles.AddOns.Common
         {
             if (!Main.AllPlayerSpeed.ContainsKey(playerId)) return;
             if (Mathf.Approximately(Main.AllPlayerSpeed[playerId], speed)) return;
+
             Main.AllPlayerSpeed[playerId] = speed;
+            LastSetSpeed[playerId] = speed; // 自分が設定した値を記録しておく（外部書き換え検知用）
             PlayerCatch.GetPlayerById(playerId)?.MarkDirtySettings();
         }
     }
 
-    // ★ PlayerControl.FixedUpdate にフック
     [HarmonyPatch(typeof(PlayerControl), nameof(PlayerControl.FixedUpdate))]
     public static class StaminaFixedUpdatePatch
     {

@@ -368,5 +368,6 @@ namespace TownOfHost
         MilkyWay,
         Pavlov,
         Eater,
+        Monika,
     }
 }

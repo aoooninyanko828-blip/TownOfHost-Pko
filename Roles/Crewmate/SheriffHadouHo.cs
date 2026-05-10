@@ -1,4 +1,4 @@
-/*using AmongUs.GameOptions;
+using AmongUs.GameOptions;
 using Hazel;
 using TownOfHost.Modules;
 using TownOfHost.Roles.Core;
@@ -20,7 +20,8 @@ public sealed class SheriffHadouHo : RoleBase, IUsePhantomButton
             SetupOptionItem,
             "shh",
             "#f8cd46",
-            (2, 0)
+            (2, 0),
+            countType: CountTypes.Crew
         );
     public SheriffHadouHo(PlayerControl player)
         : base(RoleInfo, player, () => HasTask.False)
@@ -424,4 +425,4 @@ public sealed class SheriffHadouHo : RoleBase, IUsePhantomButton
         ShowBeamMark = reader.ReadBoolean();
         ShotLimit = reader.ReadInt32();
     }
-}*/
+}

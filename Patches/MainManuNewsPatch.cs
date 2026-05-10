@@ -50,6 +50,20 @@ public class ModNewsHistory
             {
                 var news = new ModNews
                 {
+                    Number = 100071,
+                    Title = "Zzz...",
+                    SubTitle = "<color=#FF9631>Town Of Host-Pko v3.27.13.52</color>",
+                    ShortTitle = "<color=#FF9631>●TOH-Pko v3.27.13.52</color>",
+                    Text = "・ペットがちゃんとつかなかったバグの修正\n"
+                    + "・ヒッチハイカーのベントクールがおかしいバグの修正\n"
+                    ,
+                    Date = "2026-5-10"
+                };
+                AllModNews.Add(news);
+            }
+            {
+                var news = new ModNews
+                {
                     Number = 100070,
                     Title = "波動砲シェリフ？なんだそりゃ　まだ完成してねえよ!!!",
                     SubTitle = "<color=#FF9631>Town Of Host-Pko v3.27.13.51</color>",

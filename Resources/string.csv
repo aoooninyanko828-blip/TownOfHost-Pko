@@ -503,6 +503,7 @@
 "AnalyzerInfo","","さぁて...今どんな感じかな?"
 "MediumInfo","Hear the dead and reveal their role","死者のみが真実を語るだろう。"
 "NiceGuesserInfo","You are perfect and the ultimate Gesser","君は完璧で究極のゲッサー"
+"NimrodInfo","","あなたと共に霊界に向かおう"
 "HitchhikerInfo","Let's stalk the girl we like ^^","好きな子をストーキングしよう^^"
 "#CrewmateInfo"
 
@@ -793,6 +794,7 @@
 "AnalyzerInfoLong","After completing a certain number of tasks, entering the vent designated for each faction allows you to check the number of surviving players in that faction at the start of the meeting.\nMadmates are counted as Crewmates, and roles that are excluded from the alive count are not counted.\nThe designated vents for each faction are indicated by colored arrows. (<#ff1919>Ⓘ</color>: Impostor <#8cffff>Ⓒ</color>: Crewmate <#cccccc>Ⓝ</color>: Neutral)","一定タスクを完了させた後に、陣営毎に指定されているベントに入ることで、\n会議開始時に、その陣営の生存人数を確認することができる。\nマッドメイトはクルーとしてカウントされ、生存カウントに含まれない役職はカウントされない。\n陣営事の指定ベントは色付き矢印で表示されている。(<#ff1919>Ⓘ</color>:インポスター <#8cffff>Ⓒ</color>:クルー <#cccccc>Ⓝ</color>:第三陣営)"
 "MediumInfoLong","Crewmate: use /cmd sp (ID) in meetings to identify the role of dead players only. The result is sent only to you. You cannot target living players.","会議中に /cmd sp (ID) を使うと、死亡者の役職を確認できる。結果は霊媒師本人にのみ送信される。生存者は対象にできない。"
 "NiceGuesserInfoLong","On Meeting Can Guess.","会議中に誰かの役職を推測でき、的中すると対象をキルすることができる。\nただし、推測が外れると自殺する。\n\nチャットに「/cmd bt (ID) (役職名)」と送信することで推測ができる。\nプレイヤー名の左側に表示されている数字が、そのプレイヤーのIDである。"
+"NimrodInfoLong","","自身が追放された時、再びニムロッド投票用の会議が開かれる。ここでは追放されたらニムロッド以外は議論するべからず。1人を投票で選択して道連れ処刑することができる"
 "HitchhikerInfoLong","Slow-footed pets can be petted to cling to nearby players like penguins. Petting the pet again will cancel the effect. The cooldown is displayed in the vent.","足が遅い\nぺっとを撫でて近くにいるプレイヤーにペンギンのようにくっつくことができる。もう一度ペットを撫でることで解除。\nクールタイムはベントで表示。"
 "#CrewmateInfoLong"
 

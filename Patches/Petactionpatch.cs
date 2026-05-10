@@ -29,7 +29,6 @@ internal static class LocalPetPatch
             LastProcess[__instance.PlayerId] = DateTimeOffset.UtcNow.ToUnixTimeSeconds() - 2;
         if (LastProcess[__instance.PlayerId] + 1 >= DateTimeOffset.UtcNow.ToUnixTimeSeconds()) return true;
 
-        // ★ 他クライアントにPet RPCを送信
         ExternalRpcPetPatch.Prefix(__instance.MyPhysics, (byte)RpcCalls.Pet);
 
         LastProcess[__instance.PlayerId] = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
@@ -66,7 +65,6 @@ internal static class ExternalRpcPetPatch
 
         Logger.Info($"{pc.Data?.GetLogPlayerName()} がペットを撫でた", "PetActionPatch");
 
-        // ★ 役職のOnPetを呼ぶ
         OnPetUse(pc);
     }
 
@@ -76,12 +74,10 @@ internal static class ExternalRpcPetPatch
         if (!AmongUsClient.Instance.AmHost) return;
         if (GameStates.IsLobby || GameStates.IsMeeting) return;
 
-        // ★ ベント中・梯子中などはスキップ
         if (pc.inVent || pc.inMovingPlat || pc.onLadder || pc.walkingToVent) return;
         if (pc.MyPhysics.Animations.IsPlayingEnterVentAnimation()) return;
         if (pc.MyPhysics.Animations.IsPlayingAnyLadderAnimation()) return;
 
-        // ★ 登録されたPetActionハンドラを呼ぶ
         if (PetActionManager.Handlers.TryGetValue(pc.PlayerId, out var handler))
         {
             handler.Invoke();
@@ -95,16 +91,12 @@ internal static class ExternalRpcPetPatch
 /// </summary>
 public static class PetsHelper
 {
-    // ★ プレイヤーのペットをRPCで変更
     public static void SetPet(PlayerControl pc, string petId)
     {
         if (pc == null) return;
-
-        // Vanilla RPC経路を使ってシーケンス不整合を避ける
         pc.RpcSetPet(petId);
     }
 
-    // しんだらペットを外す
     public static void RemovePet(PlayerControl pc)
     {
         if (pc == null || !pc.Data.IsDead || pc.IsAlive()) return;
@@ -115,65 +107,28 @@ public static class PetsHelper
 
 /// <summary>
 /// 役職ごとのペット撫でハンドラを管理するクラス。
-/// 役職のコンストラクタでハンドラを登録し、OnDestroyで解除する。
 /// </summary>
 public static class PetActionManager
 {
-    // EHR: Modules/OptionHolder.cs の PetToAssign を引用
     private static readonly string[] EhrPetIds =
     [
-        "pet_Goose",
-        "pet_Bedcrab",
-        "pet_DancingSkeletonPet",
-        "pet_BredPet",
-        "pet_YuleGoatPet",
-        "pet_Bush",
-        "pet_Charles",
-        "pet_ChewiePet",
-        "pet_clank",
-        "pet_coaltonpet",
-        "pet_Creb",
-        "pet_Cube",
-        "pet_lny_dragon",
-        "pet_Doggy",
-        "pet_Ellie",
-        "pet_Strawb",
-        "pet_frankendog",
-        "pet_D2GhostPet",
-        "pet_test",
-        "pet_GuiltySpark",
-        "pet_Stickmin",
-        "pet_HamPet",
-        "pet_Hamster",
-        "pet_Alien",
-        "pet_poro",
-        "pet_Crow",
-        "pet_Lava",
-        "pet_Crewmate",
-        "pet_Mister",
-        "pet_nancy",
-        "pet_napstamate",
-        "pet_Pip",
-        "pet_pocketCircuitCar",
-        "pet_D2PoukaPet",
-        "pet_Pusheen",
-        "pet_Pate",
-        "pet_Rammy",
-        "pet_Robot",
-        "pet_Snow",
-        "pet_spaceCat",
-        "pet_Squig",
-        "pet_Stormy",
-        "pet_nuggetPet",
-        "pet_Charles_Red",
-        "pet_UFO",
-        "pet_D2WormPet"
+        "pet_Goose", "pet_Bedcrab", "pet_DancingSkeletonPet", "pet_BredPet",
+        "pet_YuleGoatPet", "pet_Bush", "pet_Charles", "pet_ChewiePet",
+        "pet_clank", "pet_coaltonpet", "pet_Creb", "pet_Cube",
+        "pet_lny_dragon", "pet_Doggy", "pet_Ellie", "pet_Strawb",
+        "pet_frankendog", "pet_D2GhostPet", "pet_test", "pet_GuiltySpark",
+        "pet_Stickmin", "pet_HamPet", "pet_Hamster", "pet_Alien",
+        "pet_poro", "pet_Crow", "pet_Lava", "pet_Crewmate",
+        "pet_Mister", "pet_nancy", "pet_napstamate", "pet_Pip",
+        "pet_pocketCircuitCar", "pet_D2PoukaPet", "pet_Pusheen", "pet_Pate",
+        "pet_Rammy", "pet_Robot", "pet_Snow", "pet_spaceCat",
+        "pet_Squig", "pet_Stormy", "pet_nuggetPet", "pet_Charles_Red",
+        "pet_UFO", "pet_D2WormPet"
     ];
 
-    private const string DefaultPetIdForPetAction = "pet_test"; // EHRのGlitch Pet ID
+    private const string DefaultPetIdForPetAction = "pet_test";
 
     public static readonly Dictionary<byte, Action> Handlers = new();
-    private static readonly HashSet<byte> AutoPetSent = new();
 
     public static void Register(byte playerId, Action action)
     {
@@ -181,42 +136,32 @@ public static class PetActionManager
         EnsureDefaultPet(playerId);
     }
 
-    // ★ ハンドラを解除（役職のOnDestroyで呼ぶ）
     public static void Unregister(byte playerId)
     {
         Handlers.Remove(playerId);
-        AutoPetSent.Remove(playerId);
     }
 
-    // ★ 全ハンドラをクリア（ゲーム終了時）
     public static void Reset()
     {
         Handlers.Clear();
-        AutoPetSent.Clear();
     }
 
     public static void EnsureDefaultPet(byte playerId)
     {
         if (!AmongUsClient.Instance.AmHost) return;
         if (!GameStates.IsInGame || GameStates.IsLobby) return;
-        if (AutoPetSent.Contains(playerId)) return;
 
         var pc = PlayerCatch.GetPlayerById(playerId);
         if (pc == null || !pc.IsAlive()) return;
-        if (HasPet(pc))
-        {
-            AutoPetSent.Add(playerId);
-            return;
-        }
+
+        // ★ HasPetで毎回チェック（AutoPetSentガードなし）
+        if (HasPet(pc)) return;
 
         if (Array.IndexOf(EhrPetIds, DefaultPetIdForPetAction) < 0)
-        {
             Logger.Warn($"ペットIDがリストに見つかりません: {DefaultPetIdForPetAction}", "PetActionPatch");
-        }
 
         PetsHelper.SetPet(pc, DefaultPetIdForPetAction);
         UpdatePetIdInCamouflageCache(playerId, DefaultPetIdForPetAction);
-        AutoPetSent.Add(playerId);
         Logger.Info($"{pc.Data?.GetLogPlayerName()} にGlitchペットを自動付与: {DefaultPetIdForPetAction}", "PetActionPatch");
     }
 
@@ -258,5 +203,21 @@ internal static class AutoPetAssignPatch
             foreach (var pc in PlayerCatch.AllAlivePlayerControls)
                 PetActionManager.EnsureDefaultPet(pc.PlayerId);
         }, 2.0f, "AutoPetAssignAfterIntroRetry", true);
+    }
+}
+
+// ★ 会議後にペットを再付与（カモフラージュでリセットされても再付与される）
+[HarmonyPatch(typeof(ExileController), nameof(ExileController.WrapUp))]
+internal static class AfterMeetingPetAssignPatch
+{
+    public static void Postfix()
+    {
+        if (!AmongUsClient.Instance.AmHost) return;
+
+        _ = new LateTask(() =>
+        {
+            foreach (var pc in PlayerCatch.AllAlivePlayerControls)
+                PetActionManager.EnsureDefaultPet(pc.PlayerId);
+        }, 1.5f, "AfterMeetingPetAssign", true);
     }
 }

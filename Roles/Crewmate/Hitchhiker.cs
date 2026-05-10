@@ -94,17 +94,16 @@ public sealed class Hitchhiker : RoleBase
 
         Main.AllPlayerSpeed[Player.PlayerId] *= SpeedMultiplier;
 
-        AURoleOptions.EngineerCooldown = CooldownTimerLimit;
-        AURoleOptions.EngineerInVentMaxTime = 0f;
-
         PetActionManager.Register(Player.PlayerId, OnPetAction);
     }
 
+    // ★ ベントは一切使わない。ApplyGameOptionsでEngineering系のCDをいじらない
     public override void ApplyGameOptions(IGameOptions opt)
     {
-        AURoleOptions.EngineerCooldown = currentCooldown > 0f ? currentCooldown : 0.1f;
+        AURoleOptions.EngineerCooldown = 0f;
         AURoleOptions.EngineerInVentMaxTime = 0f;
     }
+
     public override bool CanClickUseVentButton => false;
     public override bool OnEnterVent(PlayerPhysics physics, int ventId) => false;
 
@@ -115,7 +114,7 @@ public sealed class Hitchhiker : RoleBase
         if (TargetPlayer != null)
         {
             ReleaseTarget();
-            StartCooldown(CooldownTimerLimit);
+            currentCooldown = CooldownTimerLimit; // ★ RpcResetAbilityCooldownは呼ばない
             SendRpc();
             return;
         }
@@ -147,14 +146,6 @@ public sealed class Hitchhiker : RoleBase
             petAttachTimer = 0.5f;
             UtilsNotifyRoles.NotifyRoles();
         }
-    }
-
-    void StartCooldown(float cd)
-    {
-        currentCooldown = cd;
-        AURoleOptions.EngineerCooldown = cd;
-        Player.RpcResetAbilityCooldown();
-        Player.MarkDirtySettings();
     }
 
     void AttachToPlayer(PlayerControl target)
@@ -196,14 +187,13 @@ public sealed class Hitchhiker : RoleBase
         if (!AmongUsClient.Instance.AmHost) return;
         if (!GameStates.IsInTask) return;
 
+        // ★ クールダウンを内部タイマーだけで管理。ベントCDは一切触らない
         if (currentCooldown > 0f)
         {
             currentCooldown -= Time.fixedDeltaTime;
             if (currentCooldown <= 0f)
             {
                 currentCooldown = 0f;
-                AURoleOptions.EngineerCooldown = 0.1f;
-                Player.RpcResetAbilityCooldown();
                 UtilsNotifyRoles.NotifyRoles();
             }
         }
@@ -233,7 +223,7 @@ public sealed class Hitchhiker : RoleBase
             if (!TargetPlayer.IsAlive() || !Player.IsAlive())
             {
                 ReleaseTarget();
-                StartCooldown(CooldownTimerLimit);
+                currentCooldown = CooldownTimerLimit;
                 SendRpc();
                 return;
             }
@@ -244,7 +234,7 @@ public sealed class Hitchhiker : RoleBase
                 if (abilityTimer <= 0f)
                 {
                     ReleaseTarget();
-                    StartCooldown(CooldownTimerLimit);
+                    currentCooldown = CooldownTimerLimit;
                     SendRpc();
                     return;
                 }
@@ -282,7 +272,7 @@ public sealed class Hitchhiker : RoleBase
     public override void AfterMeetingTasks()
     {
         if (!AmongUsClient.Instance.AmHost) return;
-        StartCooldown(CooldownTimerLimit);
+        currentCooldown = CooldownTimerLimit;
         pendingTarget = null;
         UtilsNotifyRoles.NotifyRoles();
     }
@@ -302,7 +292,7 @@ public sealed class Hitchhiker : RoleBase
             return $"{size}<color={color}>乗車準備中...</color>";
 
         if (currentCooldown > 0f)
-            return $"{size}<color=#888888>クールダウン中</color>";
+            return $"{size}<color=#888888>クールダウン中: {Mathf.CeilToInt(currentCooldown)}s</color>";
 
         return $"{size}<color={color}>ペットを撫でる → 近くのプレイヤーに乗る</color>";
     }

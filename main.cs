@@ -40,6 +40,8 @@ namespace TownOfHost
         public static readonly bool ShowDiscordButton = true;
         // Discordサーバーの招待リンク / Discord Server Invite URL (Default: https://discord.gg/PQ5CrVHC25)
         public static readonly string DiscordInviteUrl = "https://discord.gg/PQ5CrVHC25";
+        public static readonly string MatchmakingRelayUrl = "https://tohp-relay.oyasai0831ohyasai.workers.dev/";
+        public static readonly string MatchmakingRelaySecret = "6rVp2N8xK5mQ9wA1zL4jS7tB3hG0eD9Y";
         // ==========
         public const string OriginalForkId = "OriginalTOH"; // Don't Change The Value. / この値を変更しないでください。
         // == 認証設定 / Authentication Config ==
@@ -347,6 +349,7 @@ namespace TownOfHost
                     {CustomRoles.MadonnaLovers, "#f09199"},
                     {CustomRoles.CupidLovers, "#ff69b4"},
                     {CustomRoles.OneLove , "#ff7961"},
+                    {CustomRoles.BatGirl, "#ff4f8f"},
 
                     // 幽霊役職
                     {CustomRoles.Ghostbuttoner,"#d0af4c"},
@@ -430,7 +433,14 @@ namespace TownOfHost
             if (IsCs())
                 return AllowCS;
 
-            return !ModUpdater.hasUpdate && !ModUpdater.isBroken && AllowPublicRoom && IsPublicAvailableOnThisVersion;
+            var hasRelayConfigured =
+                !string.IsNullOrWhiteSpace(MatchmakingRelayUrl)
+                && !MatchmakingRelayUrl.Equals("none", StringComparison.OrdinalIgnoreCase);
+
+            return !ModUpdater.hasUpdate
+                && !ModUpdater.isBroken
+                && AllowPublicRoom
+                && (IsPublicAvailableOnThisVersion || hasRelayConfigured);
         }
         public static bool IsroleAssigned
             => !SetRoleOverride/* && Options.CurrentGameMode == CustomGameMode.Standard*/ || SelectRolesPatch.roleAssigned;
@@ -519,6 +529,7 @@ namespace TownOfHost
         LoversBreaker = CustomRoles.LoversBreaker,
         Chatter = CustomRoles.Chatter,
         Suicider = CustomRoles.Suicider,
+        BatGirl = CustomRoles.BatGirl,
 
         HASTroll = CustomRoles.HASTroll,
         TaskPlayerB = CustomRoles.TaskPlayerB,

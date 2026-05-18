@@ -1,4 +1,4 @@
-using AmongUs.GameOptions;
+/*using AmongUs.GameOptions;
 using Hazel;
 using TownOfHost.Patches;
 using TownOfHost.Roles.Core;
@@ -168,4 +168,4 @@ public sealed class EvilMoving : RoleBase, IImpostor
             ? new Vector2(reader.ReadSingle(), reader.ReadSingle())
             : null;
     }
-}
+}*/

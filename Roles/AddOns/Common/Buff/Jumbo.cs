@@ -37,7 +37,7 @@ namespace TownOfHost.Roles.AddOns.Common
 
         public static void SetupCustomOption()
         {
-            SetupRoleOptions(Id, TabGroup.Addons, CustomRoles.Jumbo);
+            SetupRoleOptions(Id, TabGroup.Addons, CustomRoles.Jumbo, fromtext: UtilsOption.GetFrom(From.TownOfHost_Pko));
             AddOnsAssignData.Create(Id + 10, CustomRoles.Jumbo, true, true, true, true);
             ObjectOptionitem.Create(Id + 20, "AddonOption", true, "", TabGroup.Addons)
                 .SetOptionName(() => "Role Option").SetSubRoleOptionItem(CustomRoles.Jumbo);

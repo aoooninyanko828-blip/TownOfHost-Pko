@@ -42,6 +42,8 @@ public sealed class NiceTrapper : RoleBase
         traps = new();
         placedCount = 0;
         cooldownTimer = PlaceCooldown;
+        currentTrapType = NiceTrapperTrapType.Speed;
+        trapTypeTimer = 0f;
     }
 
     static OptionItem OptionMaxTraps;
@@ -97,15 +99,19 @@ public sealed class NiceTrapper : RoleBase
     int placedCount;
     float cooldownTimer;
 
+    NiceTrapperTrapType currentTrapType;
+    float trapTypeTimer;
+
     readonly Dictionary<byte, float> effectTimers = new();
     readonly Dictionary<byte, float> savedSpeeds = new();
-
     readonly List<(Vector2 pos, string colorCode)> activeNotifyArrows = new();
 
     public override void Add()
     {
         placedCount = 0;
         cooldownTimer = PlaceCooldown;
+        currentTrapType = NiceTrapperTrapType.Speed;
+        trapTypeTimer = 0f;
         traps.Clear();
         effectTimers.Clear();
         savedSpeeds.Clear();
@@ -145,13 +151,12 @@ public sealed class NiceTrapper : RoleBase
 
     void PlaceTrap(Vector2 pos)
     {
-        var type = (NiceTrapperTrapType)IRandom.Instance.Next(0, 3);
         var data = new TrapData
         {
-            Type = type,
+            Type = currentTrapType,
             Active = false,
             Position = pos,
-            Obj = new TrapNetObject(pos, type, Player, activated: false)
+            Obj = new TrapNetObject(pos, currentTrapType, Player, activated: false)
         };
         traps.Add(data);
 
@@ -172,6 +177,14 @@ public sealed class NiceTrapper : RoleBase
         {
             cooldownTimer -= Time.fixedDeltaTime;
             if (cooldownTimer < 0f) cooldownTimer = 0f;
+        }
+
+        trapTypeTimer += Time.fixedDeltaTime;
+        if (trapTypeTimer >= 3f)
+        {
+            trapTypeTimer = 0f;
+            currentTrapType = (NiceTrapperTrapType)(((int)currentTrapType + 1) % 3);
+            UtilsNotifyRoles.NotifyRoles(OnlyMeName: true);
         }
 
         foreach (var pid in effectTimers.Keys.ToArray())
@@ -245,9 +258,7 @@ public sealed class NiceTrapper : RoleBase
         int colorId = target.Data.DefaultOutfit.ColorId;
         string colorCode = "#ffffff";
         if (colorId >= 0 && colorId < Palette.PlayerColors.Length)
-        {
             colorCode = "#" + UnityEngine.ColorUtility.ToHtmlStringRGB(Palette.PlayerColors[colorId]);
-        }
 
         var arrowData = (targetPos, colorCode);
         activeNotifyArrows.Add(arrowData);
@@ -317,28 +328,29 @@ public sealed class NiceTrapper : RoleBase
         if (!Is(seer) || !Is(seen)) return "";
 
         var arrows = "";
-
         foreach (var arrowData in activeNotifyArrows.ToArray())
         {
             var arr = GetArrow.GetArrows(seer, arrowData.pos);
             if (!string.IsNullOrEmpty(arr))
-            {
                 arrows += $"<color={arrowData.colorCode}>{arr}</color>";
-            }
         }
-
         return arrows;
     }
 
     public override string GetProgressText(bool comms = false, bool GameLog = false)
     {
         if (!Player.IsAlive()) return "";
-        int active = traps.Count(t => t.Active);
-        int inactive = traps.Count(t => !t.Active);
-        string txt = $"({MaxTraps - placedCount}残)";
-        if (active > 0) txt += $" <color=#66ff99>有:{active}</color>";
-        if (inactive > 0) txt += $" <color=#888888>待:{inactive}</color>";
-        return $"<color={RoleInfo.RoleColorCode}>{txt}</color>";
+
+        string typeIcon = currentTrapType switch
+        {
+            NiceTrapperTrapType.Speed => "<color=#4488ff>▲</color>",
+            NiceTrapperTrapType.Slow => "<color=#ff4444>▼</color>",
+            NiceTrapperTrapType.Notify => "<color=#ffff00>●</color>",
+            _ => "?"
+        };
+
+        string remain = $"({MaxTraps - placedCount}残)";
+        return $"<color={RoleInfo.RoleColorCode}>{remain}</color>{typeIcon}";
     }
 
     void SendRpc()
@@ -347,6 +359,7 @@ public sealed class NiceTrapper : RoleBase
         using var sender = CreateSender();
         sender.Writer.Write(placedCount);
         sender.Writer.Write(cooldownTimer);
+        sender.Writer.Write((int)currentTrapType);
         sender.Writer.Write(traps.Count);
         foreach (var t in traps)
         {
@@ -361,6 +374,7 @@ public sealed class NiceTrapper : RoleBase
     {
         placedCount = reader.ReadInt32();
         cooldownTimer = reader.ReadSingle();
+        currentTrapType = (NiceTrapperTrapType)reader.ReadInt32();
         int count = reader.ReadInt32();
         for (int i = 0; i < count; i++)
         {

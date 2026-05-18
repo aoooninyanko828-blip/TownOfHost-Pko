@@ -22,7 +22,8 @@ public sealed class SmokeMaker : RoleBase, IImpostor, IUsePhantomButton
             126400,
             SetupOptionItem,
             "sm",
-            OptionSort: (3, 15)
+            OptionSort: (3, 15),
+            from: From.TownOfHost_Pko
         );
 
     public SmokeMaker(PlayerControl player) : base(RoleInfo, player)
@@ -334,7 +335,7 @@ public class SmokeCloud : CustomNetObject
     protected override void OnCreated()
     {
         SetAppearance(0, "", "", "", ""); // 本体は見えなくなるので適当でOK
-        SetName($"<color=#aaaaaa><size={_smokeSize}%>・</size></color>"); // 煙っぽい色を追加
+        SetName($"<color=#aaaaaa><size={_smokeSize}%>・</size></color>"); // 煙っぽい色
         SnapToPosition(_spawnPos);
         SmokeDummy.ActiveSmokes.Add(this);
     }

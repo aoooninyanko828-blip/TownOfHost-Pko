@@ -21,7 +21,8 @@ public sealed class TimeSleeper : RoleBase, IImpostor, IUsePhantomButton
             25000,
             SetUpOptionItem,
             "ts",
-            OptionSort: (6, 14)
+            OptionSort: (6, 14),
+            from: From.TownOfHost_Pko
         );
 
     public TimeSleeper(PlayerControl player)

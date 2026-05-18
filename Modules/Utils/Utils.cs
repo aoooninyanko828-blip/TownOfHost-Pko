@@ -776,6 +776,16 @@ namespace TownOfHost
                 {
                     if (roleClass is Balancer balancer) balancer.BalancerAfterMeetingTasks();
                 }
+
+                // さつまといもの処理だよ！
+                foreach (var pc in PlayerCatch.AllPlayerControls)
+                {
+                    var roleClass = pc.GetRoleClass();
+                    if (roleClass == null) continue;
+                    if (!pc.Is(CustomRoles.SatsumatoImoC) && !pc.Is(CustomRoles.SatsumatoImoM)) continue;
+                    roleClass.AfterMeetingTasks();
+                    roleClass.ChangeColor();
+                }
             }
             else
             {

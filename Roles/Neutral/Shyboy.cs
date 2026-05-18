@@ -1,8 +1,14 @@
-using AmongUs.GameOptions;
-using UnityEngine;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using AmongUs.GameOptions;
+using Hazel;
+using TownOfHost.Modules;
+using TownOfHost.Patches;
 using TownOfHost.Roles.Core;
+using UnityEngine;
 using TownOfHost.Roles.AddOns.Common;
+
 namespace TownOfHost.Roles.Crewmate;
 
 public sealed class Shyboy : RoleBase
@@ -13,58 +19,88 @@ public sealed class Shyboy : RoleBase
             player => new Shyboy(player),
             CustomRoles.Shyboy,
             () => RoleTypes.Engineer,
-            CustomRoleTypes.Crewmate,
+            CustomRoleTypes.Neutral,
             11900,
             SetupOptionItem,
             "Sy",
             "#00fa9a",
-            (8, 0),
-            introSound: () => GetIntroSound(RoleTypes.Crewmate),
-            from: From.TownOfHost_K
+            (7, 0)
         );
+
     public Shyboy(PlayerControl player)
-    : base(
-        RoleInfo,
-        player
-    )
+    : base(RoleInfo, player)
     {
         Notify = true;
         Shytime = OptionShytime.GetFloat();
         Notshy = OptionNotShy.GetFloat();
+        ShowArrow = OptionShowArrow.GetBool();
+        ArrowMatchColor = OptionArrowMatchColor.GetBool();
+        ShowNearby = OptionShowNearby.GetBool();
+        ShowNearbyRange = OptionShowNearbyRange.GetFloat();
+
         Shydeath = 0;
         AfterMeeting = 0;
     }
-    private static float Shytime; private static OptionItem OptionShytime;
-    private static float Notshy; private static OptionItem OptionNotShy;
+
+    private static float Shytime;
+    private static OptionItem OptionShytime;
+    private static float Notshy;
+    private static OptionItem OptionNotShy;
     public static OptionItem OptionShyDieBom;
+
+    public static OptionItem OptionShowArrow;
+    public static OptionItem OptionArrowMatchColor;
+    public static OptionItem OptionShowNearby;
+    public static OptionItem OptionShowNearbyRange;
+
     float Shydeath;
     float Cool;
     float AfterMeeting;
     bool Notify;
     float Last;
     float Shydeathdi;
+
+    bool ShowArrow;
+    bool ArrowMatchColor;
+    bool ShowNearby;
+    float ShowNearbyRange;
+
+    private readonly HashSet<byte> registeredArrows = new();
+
     enum OptionName
     {
         ShyboyShytime,
         ShyboyAfterMeetingNotShytime,
-        ShyboyBooooom
+        ShyboyBooooom,
+        ShyboyShowArrow,
+        ShyboyArrowMatchColor,
+        ShyboyShowNearby,
+        ShyboyShowNearbyRange
     }
 
     public override bool CanClickUseVentButton => false;
+
     private static void SetupOptionItem()
     {
         OptionShytime = FloatOptionItem.Create(RoleInfo, 10, OptionName.ShyboyShytime, new(0f, 15f, 0.5f), 5f, false);
         OptionNotShy = FloatOptionItem.Create(RoleInfo, 11, OptionName.ShyboyAfterMeetingNotShytime, new(0f, 30f, 1f), 10f, false);
         OptionShyDieBom = BooleanOptionItem.Create(RoleInfo, 12, OptionName.ShyboyBooooom, false, false)
         .SetInfo(GetString("AprilfoolOnly")).SetEnabled(() => Event.April || Event.Special);
+
+        OptionShowArrow = BooleanOptionItem.Create(RoleInfo, 13, OptionName.ShyboyShowArrow, true, false);
+        OptionArrowMatchColor = BooleanOptionItem.Create(RoleInfo, 14, OptionName.ShyboyArrowMatchColor, true, false, OptionShowArrow);
+
+        OptionShowNearby = BooleanOptionItem.Create(RoleInfo, 15, OptionName.ShyboyShowNearby, true, false);
+        OptionShowNearbyRange = FloatOptionItem.Create(RoleInfo, 16, OptionName.ShyboyShowNearbyRange, new(0.5f, 15f, 0.5f), 4.0f, false, OptionShowNearby);
     }
+
     public override void ApplyGameOptions(IGameOptions opt)
     {
-        //ししゃごにゅー
         double Coold = Math.Round(Shytime + 1 / 4 - Shydeath);
         AURoleOptions.EngineerCooldown = (float)Coold;
         AURoleOptions.EngineerInVentMaxTime = 0;
     }
+
     public override void StartGameTasks()
     {
         Shydeathdi = Player.Is(CustomRoles.Lighting) ? Main.DefaultImpostorVision : Main.DefaultCrewmateVision;
@@ -73,36 +109,44 @@ public sealed class Shyboy : RoleBase
             Shydeathdi *= Sunglasses.SunglassesVisionmagnification.GetFloat() * 0.01f;
         }
 
-
         Shydeathdi *= 4.5f;
         Shydeathdi = Mathf.Min(Shydeathdi, 4);
     }
+
     public override void OnStartMeeting()
     {
         Notify = true;
         Shydeath = 0;
         AfterMeeting = 0;
         StartGameTasks();
+
+        registeredArrows.Clear();
     }
+
+    public override void OnDestroy()
+    {
+        registeredArrows.Clear();
+    }
+
     public override void OnFixedUpdate(PlayerControl player)
     {
         if (!AmongUsClient.Instance.AmHost) return;
         if (GameStates.CalledMeeting || GameStates.ExiledAnimate || !MyState.HasSpawned) return;
         if (!Player.IsAlive()) return;
+
         Cool += Time.fixedDeltaTime;
         if (0.25 < Cool)
         {
             Cool = 0;
-            //シャイのクールｳﾙｾｪからログださない()()バグ起こったらここtrueか削除して探そう!!((((
-            //30回に1回だけとかlog残すか考えたけど余計重くなりそう。
             var cooldown = (float)Math.Round(Shytime + 1 / 4 - Shydeath);
-            if (Last != cooldown) //必要な時だけ送る
+            if (Last != cooldown)
             {
                 Last = cooldown;
                 Player.MarkDirtySettings();
             }
             Player.RpcResetAbilityCooldown(log: false);
         }
+
         AfterMeeting += Time.fixedDeltaTime;
 
         if (GameStates.IsInTask && Notshy <= AfterMeeting - 5)
@@ -129,16 +173,17 @@ public sealed class Shyboy : RoleBase
                     }
                 }
             }
-            if (Hito)//周囲に人がいる状況
+
+            if (Hito)
             {
                 Shydeath += Time.fixedDeltaTime;
             }
             else
             {
-                Shydeath -= Time.fixedDeltaTime * 1 / 4;//周囲に人がいないとカウントをちょっとずつ減らす
+                Shydeath -= Time.fixedDeltaTime * 1 / 4;
             }
 
-            if (Shydeath <= -0.25f)//値がマイナスにならないようにする
+            if (Shydeath <= -0.25f)
             {
                 Shydeath = 0;
             }
@@ -147,8 +192,9 @@ public sealed class Shyboy : RoleBase
             {
                 Logger.Info("もぉみんなかまうからシャイ君しんぢゃったぁ～!", "Shyboy");
                 MyState.DeathReason = CustomDeathReason.Suicide;
-                Player.RpcMurderPlayer(Player);//一定時間周囲に人がいたら恥ずかしくて死ぬ。
-                Shydeath = -1;//0sの無限キル防止(おきないだろうけど)
+                Player.RpcMurderPlayer(Player);
+                Shydeath = -1;
+
                 if ((Event.April || Event.Special) && OptionShyDieBom.GetBool())
                 {
                     var bombcount = 0;
@@ -174,7 +220,94 @@ public sealed class Shyboy : RoleBase
                 }
             }
         }
+
+        if (GameStates.IsInTask)
+        {
+            var aliveIds = new HashSet<byte>(
+                PlayerCatch.AllAlivePlayerControls
+                    .Where(pc => pc.PlayerId != Player.PlayerId)
+                    .Select(pc => pc.PlayerId));
+
+            foreach (var id in aliveIds)
+                registeredArrows.Add(id);
+
+            foreach (var id in registeredArrows.ToArray())
+            {
+                if (!aliveIds.Contains(id))
+                {
+                    registeredArrows.Remove(id);
+                }
+            }
+
+            UtilsNotifyRoles.NotifyRoles(OnlyMeName: true);
+        }
     }
+
+    public override string GetMark(PlayerControl seer, PlayerControl seen = null, bool isForMeeting = false)
+    {
+        seen ??= seer;
+        if (isForMeeting) return "";
+        if (!Player.IsAlive()) return "";
+        if (!Is(seer) || !Is(seen)) return "";
+        if (!ShowArrow) return "";
+
+        var arrows = "";
+        foreach (var id in registeredArrows)
+        {
+            var pc = PlayerCatch.GetPlayerById(id);
+            if (pc == null || !pc.IsAlive()) continue;
+
+            var arr = GetArrow.GetArrows(seer, pc.transform.position);
+            if (!string.IsNullOrEmpty(arr))
+            {
+                string colorCode = "#ffffff";
+                if (ArrowMatchColor)
+                {
+                    int colorId = pc.Data.DefaultOutfit.ColorId;
+                    if (colorId >= 0 && colorId < Palette.PlayerColors.Length)
+                        colorCode = "#" + UnityEngine.ColorUtility.ToHtmlStringRGB(Palette.PlayerColors[colorId]);
+                }
+                arrows += $"<color={colorCode}>{arr}</color>";
+            }
+        }
+        return arrows;
+    }
+
+    public override string GetLowerText(PlayerControl seer, PlayerControl seen = null, bool isForMeeting = false, bool isForHud = false)
+    {
+        seen ??= seer;
+        if (isForMeeting || isForHud) return "";
+        if (!Player.IsAlive()) return "";
+        if (!Is(seer) || !Is(seen)) return "";
+        if (!ShowNearby) return "";
+
+        string shapes = "";
+        Vector2 GSpos = Player.transform.position;
+
+        foreach (var pc in PlayerCatch.AllAlivePlayerControls)
+        {
+            if (pc.PlayerId == Player.PlayerId) continue;
+
+            float HitoDistance = Vector2.Distance(GSpos, pc.transform.position);
+            var vector = (Vector2)pc.transform.position - GSpos;
+            float dis = vector.magnitude;
+
+            if (HitoDistance <= ShowNearbyRange && !PhysicsHelpers.AnyNonTriggersBetween(GSpos, pc.transform.position, dis, Constants.ShadowMask))
+            {
+                int colorId = pc.Data.DefaultOutfit.ColorId;
+                string colorCode = "#ffffff";
+                if (colorId >= 0 && colorId < Palette.PlayerColors.Length)
+                    colorCode = "#" + UnityEngine.ColorUtility.ToHtmlStringRGB(Palette.PlayerColors[colorId]);
+                shapes += $"<color={colorCode}>■</color>";
+            }
+        }
+
+        if (!string.IsNullOrEmpty(shapes))
+            return $"<size=70%>{shapes}</size>";
+
+        return "";
+    }
+
     public override bool AllEnabledColor => true;
     public override bool OnEnterVent(PlayerPhysics physics, int ventId) => false;
     public override string GetAbilityButtonText() => GetString("ShyBoyText");
@@ -183,18 +316,22 @@ public sealed class Shyboy : RoleBase
         text = "ShyBoy_Ability";
         return true;
     }
+
     public override void CheckWinner(GameOverReason reason)
     {
         if (Player.IsAlive())
         {
+            if (CustomWinnerHolder.ResetAndSetAndChWinner(CustomWinner.Shyboy, Player.PlayerId))
+                CustomWinnerHolder.NeutralWinnerIds.Add(Player.PlayerId);
+
             Achievements.RpcCompleteAchievement(Player.PlayerId, 0, achievements[0]);
             if (Shytime <= 3 && Notshy <= 5)
-            {
                 Achievements.RpcCompleteAchievement(Player.PlayerId, 0, achievements[1]);
-            }
         }
     }
+
     public static System.Collections.Generic.Dictionary<int, Achievement> achievements = new();
+
     [Attributes.PluginModuleInitializer]
     public static void Load()
     {

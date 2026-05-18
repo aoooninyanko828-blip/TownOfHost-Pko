@@ -22,7 +22,8 @@ public sealed class Hitchhiker : RoleBase
             SetupOptionItem,
             "hi",
             "#A0522D",
-            (7, 1)
+            (7, 1),
+            from: From.TownOfHost_Pko
         );
 
     public Hitchhiker(PlayerControl player)

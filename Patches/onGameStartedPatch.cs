@@ -436,10 +436,10 @@ namespace TownOfHost
                 AssignCustomRolesFromList(CustomRoles.HASTroll, Crewmates);
                 foreach (var pair in PlayerState.AllPlayerStates)
                 {
-                    //RPCによる同期
+                    // Sync by RPC
                     ExtendedRpc.RpcSetCustomRole(pair.Key, pair.Value.MainRole);
                 }
-                //色設定処理
+                // Apply color settings
                 SetColorPatch.IsAntiGlitchDisabled = true;
                 GameEndChecker.SetPredicateToHideAndSeek();
             }
@@ -448,7 +448,7 @@ namespace TownOfHost
                 AssignCustomRolesFromList(CustomRoles.TaskPlayerB, Crewmates);
                 foreach (var pair in PlayerState.AllPlayerStates)
                 {
-                    //RPCによる同期
+                    // Sync by RPC
                     ExtendedRpc.RpcSetCustomRole(pair.Key, pair.Value.MainRole);
                 }
 
@@ -498,6 +498,13 @@ namespace TownOfHost
                 Twins.AssingAndReset();
                 if (Amanojaku.AssingDay.GetInt() == 0) AmanojakuAssing.AssignAddOnsFromList();
                 Faction.AssingFaction();
+
+                // さつまといもの処理
+                foreach (var state in PlayerState.AllPlayerStates.Values)
+                {
+                    if (state.MainRole != CustomRoles.SatsumatoImo) continue;
+                    state.SetMainRole(rand.Next(0, 2) == 0 ? CustomRoles.SatsumatoImoC : CustomRoles.SatsumatoImoM);
+                }
 
                 foreach (var pair in PlayerState.AllPlayerStates)
                 {
@@ -574,7 +581,16 @@ namespace TownOfHost
             for (var i = 0; i < role.GetRealCount(); i++)
             {
                 if (AllPlayers.Count <= 0) break;
-                var player = AllPlayers[rand.Next(0, AllPlayers.Count)];
+                var candidatePlayers = AllPlayers;
+                if (role.IsMadmate() && RoleAssignManager.OptionAssignMadmateFromCrewmateSlot.GetBool())
+                {
+                    var crewSlotCandidates = AllPlayers.Where(pc => pc?.Data?.Role?.Role.IsCrewmate() == true).ToList();
+                    if (crewSlotCandidates.Count > 0)
+                        candidatePlayers = crewSlotCandidates;
+                    else
+                        Logger.Warn("AssignMadmateFromCrewmateSlot が有効ですが、この時点ではクルー枠候補が見つからなかったため、利用可能な全プレイヤーから割り当てます。", "AssignRolesDesync");
+                }
+                var player = candidatePlayers[rand.Next(0, candidatePlayers.Count)];
                 AllPlayers.Remove(player);
                 PlayerState.GetByPlayerId(player.PlayerId).SetMainRole(role);
                 Logger.Info("役職設定:" + player?.Data?.GetLogPlayerName() + " = " + role.ToString(), "AssignRolesDesync");

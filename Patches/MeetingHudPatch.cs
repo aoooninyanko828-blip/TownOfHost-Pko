@@ -485,7 +485,7 @@ public static class MeetingHudPatch
                             continue;
                     }
                 }
-                if (seer.Is(CustomRoles.NiceGuesser))
+                if (seer.Is(CustomRoles.NiceGuesser) || seer.Is(CustomRoles.EvilGuesser))
                 {
                     if (!seer.Data.IsDead && !target.Data.IsDead && target != seer)
                         fsb.Append(Utils.ColorString(Color.yellow, target.PlayerId.ToString()) + " ");

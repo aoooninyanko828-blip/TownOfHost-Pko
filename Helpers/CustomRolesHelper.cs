@@ -371,5 +371,6 @@ namespace TownOfHost
         Pavlov,
         Eater,
         Monika,
+        StandMaster,
     }
 }

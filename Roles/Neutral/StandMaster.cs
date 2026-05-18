@@ -2,14 +2,16 @@ using System.Collections.Generic;
 using System.Linq;
 using AmongUs.GameOptions;
 using Hazel;
+using TownOfHost;
 using TownOfHost.Roles.Core;
 using TownOfHost.Roles.Core.Interfaces;
+using TownOfHost.Roles.Madmate;
 using UnityEngine;
 using HarmonyLib;
 
 namespace TownOfHost.Roles.Neutral;
 
-public sealed class StandMaster : RoleBase, IUsePhantomButton
+public sealed class StandMaster : RoleBase, ILNKiller, IUsePhantomButton
 {
     public static readonly SimpleRoleInfo RoleInfo =
         SimpleRoleInfo.Create(
@@ -23,27 +25,34 @@ public sealed class StandMaster : RoleBase, IUsePhantomButton
             "stm",
             "#8B4513",
             (7, 3),
-            true
+            true,
+            countType: CountTypes.StandMaster,
+            from: From.TownOfHost_Pko
         );
 
     public StandMaster(PlayerControl player)
         : base(RoleInfo, player, () => HasTask.False)
     {
         SummonCooldown = OptionSummonCooldown.GetFloat();
+        StandStayTime = OptionStandStayTime.GetFloat();
 
         standPlayerId = byte.MaxValue;
         standReturnPos = null;
         standSummoned = false;
         standCreated = false;
         isRevealed = false;
+        currentStayTimer = 0f;
     }
 
     static OptionItem OptionSummonCooldown;
+    static OptionItem OptionStandStayTime;
     static float SummonCooldown;
+    static float StandStayTime;
 
     enum OptionName
     {
         StandMasterSummonCooldown,
+        StandMasterStayTime,
     }
 
     public byte standPlayerId;
@@ -51,11 +60,14 @@ public sealed class StandMaster : RoleBase, IUsePhantomButton
     public bool standSummoned;
     public bool standCreated;
     public bool isRevealed;
+    public float currentStayTimer;
 
     static void SetupOptionItem()
     {
         SoloWinOption.Create(RoleInfo, 9, defo: 1);
         OptionSummonCooldown = FloatOptionItem.Create(RoleInfo, 10, OptionName.StandMasterSummonCooldown,
+            new(2.5f, 60f, 2.5f), 30f, false).SetValueFormat(OptionFormat.Seconds);
+        OptionStandStayTime = FloatOptionItem.Create(RoleInfo, 11, OptionName.StandMasterStayTime,
             new(2.5f, 60f, 2.5f), 20f, false).SetValueFormat(OptionFormat.Seconds);
 
         HideRoleOptions(CustomRoles.Stand);
@@ -115,6 +127,7 @@ public sealed class StandMaster : RoleBase, IUsePhantomButton
         }
         return "";
     }
+
     public override bool OnCheckMurderAsTarget(MurderInfo info)
     {
         (var killer, var target) = info.AttemptTuple;
@@ -125,10 +138,57 @@ public sealed class StandMaster : RoleBase, IUsePhantomButton
         return true;
     }
 
+    public bool CanUseKillButton() => Player.IsAlive() && !standCreated;
+    public bool CanUseImpostorVentButton() => false;
+    public bool CanUseSabotageButton() => false;
+    public float CalculateKillCooldown() => SummonCooldown;
+
+    public bool OverrideKillButtonText(out string text)
+    {
+        text = "スタンド化";
+        return true;
+    }
+
+    public void OnCheckMurderAsKiller(MurderInfo info)
+    {
+        var (killer, target) = info.AttemptTuple;
+
+        info.DoKill = false;
+
+        if (standCreated) return;
+        if (target.PlayerId == killer.PlayerId) return;
+
+        standCreated = true;
+        standPlayerId = target.PlayerId;
+        standSummoned = false;
+        standReturnPos = null;
+        isRevealed = false;
+
+        if (!Utils.RoleSendList.Contains(target.PlayerId))
+            Utils.RoleSendList.Add(target.PlayerId);
+
+        target.RpcSetCustomRole(CustomRoles.Stand, log: null);
+        target.RpcSetRole(RoleTypes.Crewmate);
+
+        _ = new LateTask(() =>
+        {
+            if (target.GetRoleClass() is Stand stand)
+                stand.SetOwner(Player.PlayerId);
+        }, 0.2f, "StandMaster.SetOwner", true);
+
+        target.MarkDirtySettings();
+        SyncState();
+
+        UtilsGameLog.AddGameLog("StandMaster", $"{UtilsName.GetPlayerColor(Player)} が {UtilsName.GetPlayerColor(target)} をスタンドにした");
+
+        _ = new LateTask(() =>
+        {
+            if (Player.IsAlive()) Player.RpcResetAbilityCooldown();
+        }, 0.1f, "StandMaster.ResetPhantomCD", true);
+    }
+
     public void OnClick(ref bool AdjustKillCooldown, ref bool? ResetCooldown)
     {
-        AdjustKillCooldown = false;
-        ResetCooldown = false;
 
         if (!Player.IsAlive()) return;
         if (!standCreated) return;
@@ -140,13 +200,12 @@ public sealed class StandMaster : RoleBase, IUsePhantomButton
 
         standReturnPos = stand.transform.position;
         standSummoned = true;
+        currentStayTimer = StandStayTime;
 
+        stand.RpcSetRoleDesync(RoleTypes.Phantom, stand.GetClientId());
+        foreach (var imp in PlayerCatch.AllAlivePlayerControls.Where(pc => pc.GetCustomRole().IsImpostor()))
         {
-            var writer = AmongUsClient.Instance.StartRpcImmediately(
-                stand.NetId, (byte)RpcCalls.SetRole, SendOption.Reliable, stand.OwnerId);
-            writer.Write((ushort)RoleTypes.Impostor);
-            writer.Write(true);
-            AmongUsClient.Instance.FinishRpcImmediately(writer);
+            imp.RpcSetRoleDesync(RoleTypes.Scientist, stand.GetClientId());
         }
 
         stand.MarkDirtySettings();
@@ -158,9 +217,9 @@ public sealed class StandMaster : RoleBase, IUsePhantomButton
         _ = new LateTask(() =>
         {
             if (!Player.IsAlive()) return;
-            AURoleOptions.PhantomCooldown = SummonCooldown;
+            AURoleOptions.PhantomCooldown = StandStayTime;
             Player.RpcResetAbilityCooldown();
-            Player.RpcResetAbilityCooldown();
+            if (stand != null && stand.IsAlive()) stand.RpcResetAbilityCooldown();
         }, 0.1f, "StandMaster.ResetCD", true);
     }
 
@@ -171,12 +230,11 @@ public sealed class StandMaster : RoleBase, IUsePhantomButton
 
         if (standReturnPos.HasValue)
             stand.RpcSnapToForced(standReturnPos.Value);
+
+        stand.RpcSetRoleDesync(RoleTypes.Crewmate, stand.GetClientId());
+        foreach (var imp in PlayerCatch.AllAlivePlayerControls.Where(pc => pc.GetCustomRole().IsImpostor()))
         {
-            var writer = AmongUsClient.Instance.StartRpcImmediately(
-                stand.NetId, (byte)RpcCalls.SetRole, SendOption.Reliable, stand.OwnerId);
-            writer.Write((ushort)RoleTypes.Crewmate);
-            writer.Write(true);
-            AmongUsClient.Instance.FinishRpcImmediately(writer);
+            imp.RpcSetRoleDesync(RoleTypes.Impostor, stand.GetClientId());
         }
 
         stand.MarkDirtySettings();
@@ -185,6 +243,12 @@ public sealed class StandMaster : RoleBase, IUsePhantomButton
         standReturnPos = null;
 
         SyncState();
+
+        _ = new LateTask(() =>
+        {
+            AURoleOptions.PhantomCooldown = SummonCooldown;
+            if (Player.IsAlive()) Player.RpcResetAbilityCooldown();
+        }, 0.1f, "StandMaster.ReturnCD", true);
     }
 
     public override void OnReportDeadBody(PlayerControl reporter, NetworkedPlayerInfo target)
@@ -194,14 +258,26 @@ public sealed class StandMaster : RoleBase, IUsePhantomButton
         ReturnStand();
     }
 
+    bool skipSwapForThisMeeting;
     public override void OnStartMeeting()
     {
-        standSummoned = false;
+        skipSwapForThisMeeting = SatsumatoImo.IsSpecialMeetingNoSwap();
+        if (!skipSwapForThisMeeting)
+        {
+            standSummoned = false;
+        }
     }
 
     public override void AfterMeetingTasks()
     {
         if (!AmongUsClient.Instance.AmHost) return;
+        if (skipSwapForThisMeeting)
+        {
+            skipSwapForThisMeeting = false;
+            return;
+        }
+        skipSwapForThisMeeting = false;
+
         if (!standCreated) return;
 
         var stand = GetStand();
@@ -213,35 +289,35 @@ public sealed class StandMaster : RoleBase, IUsePhantomButton
             SendRpc();
             return;
         }
+
+        stand.RpcSetRoleDesync(RoleTypes.Crewmate, stand.GetClientId());
+        foreach (var imp in PlayerCatch.AllAlivePlayerControls.Where(pc => pc.GetCustomRole().IsImpostor()))
         {
-            var writer = AmongUsClient.Instance.StartRpcImmediately(
-                stand.NetId, (byte)RpcCalls.SetRole, SendOption.Reliable, stand.OwnerId);
-            writer.Write((ushort)RoleTypes.Crewmate);
-            writer.Write(true);
-            AmongUsClient.Instance.FinishRpcImmediately(writer);
+            imp.RpcSetRoleDesync(RoleTypes.Impostor, stand.GetClientId());
         }
+
         stand.MarkDirtySettings();
         standSummoned = false;
         SendRpc();
+
+        AURoleOptions.PhantomCooldown = SummonCooldown;
     }
 
-    public override void CheckWinner(GameOverReason reason)
+    public override void OnFixedUpdate(PlayerControl player)
     {
+        if (!AmongUsClient.Instance.AmHost) return;
+        if (player != Player) return;
         if (!Player.IsAlive()) return;
 
-        int aliveCount = PlayerCatch.AllAlivePlayerControls.Count();
-        int standTeamAlive = 0;
-
-        if (Player.IsAlive()) standTeamAlive++;
-        var stand = GetStand();
-        if (stand != null && stand.IsAlive()) standTeamAlive++;
-
-        if (aliveCount <= standTeamAlive)
+        if (standSummoned)
         {
-            if (CustomWinnerHolder.ResetAndSetAndChWinner(CustomWinner.StandMaster, Player.PlayerId))
+            if (currentStayTimer > 0f)
             {
-                CustomWinnerHolder.NeutralWinnerIds.Add(Player.PlayerId);
-                if (stand != null) CustomWinnerHolder.WinnerIds.Add(stand.PlayerId);
+                currentStayTimer -= Time.fixedDeltaTime;
+                if (currentStayTimer <= 0f)
+                {
+                    ReturnStand();
+                }
             }
         }
     }
@@ -272,10 +348,9 @@ public sealed class StandMaster : RoleBase, IUsePhantomButton
             ? new Vector2(reader.ReadSingle(), reader.ReadSingle())
             : null;
     }
-
-    public float CalculateKillCooldown() => 999f;
 }
-public sealed class Stand : RoleBase, ILNKiller, IAdditionalWinner
+
+public sealed class Stand : RoleBase, ILNKiller
 {
     public static readonly SimpleRoleInfo RoleInfo =
         SimpleRoleInfo.Create(
@@ -289,7 +364,7 @@ public sealed class Stand : RoleBase, ILNKiller, IAdditionalWinner
             "st",
             "#8B4513",
             (7, 3),
-            isDesyncImpostor: true
+            from: From.TownOfHost_Pko
         );
 
     public Stand(PlayerControl player) : base(RoleInfo, player, () => HasTask.False)
@@ -374,8 +449,14 @@ public sealed class Stand : RoleBase, ILNKiller, IAdditionalWinner
     public float CalculateKillCooldown()
     {
         var sm = GetOwner();
-        if (sm != null && sm.standSummoned) return 0.1f;
+        if (sm != null && sm.standSummoned) return sm.currentStayTimer;
         return 999f;
+    }
+
+    public bool CanUseKillButton()
+    {
+        var sm = GetOwner();
+        return sm != null && sm.standSummoned;
     }
 
     public bool CanUseSabotageButton() => false;
@@ -422,13 +503,6 @@ public sealed class Stand : RoleBase, ILNKiller, IAdditionalWinner
         UtilsGameLog.AddGameLog("StandMaster", $"{UtilsName.GetPlayerColor(Player)} がスタンドマスターの死亡により道連れになった");
     }
 
-    public bool CheckWin(ref CustomRoles winnerRole)
-    {
-        if (CustomWinnerHolder.WinnerTeam is not CustomWinner.StandMaster) return false;
-        winnerRole = Player.GetCustomRole();
-        return true;
-    }
-
     void SendRPC()
     {
         if (!AmongUsClient.Instance.AmHost) return;
@@ -452,8 +526,29 @@ public static class StandMasterMurderPatch
         if (__instance.PlayerId == target.PlayerId) return true;
 
         var role = __instance.GetRoleClass();
+        var targetRole = target.GetRoleClass();
 
-        if (role is StandMaster standMaster)
+        if (role is Stand standPlayer)
+        {
+            var sm = standPlayer.GetOwner();
+            if (sm != null)
+            {
+                if (target.PlayerId == sm.Player.PlayerId) return false;
+
+                if (sm.standSummoned)
+                {
+                    _ = new LateTask(() =>
+                    {
+                        sm.ReturnStand();
+                        if (sm.Player.IsAlive())
+                        {
+                            sm.Player.RpcResetAbilityCooldown();
+                        }
+                    }, 0.3f, "StandMaster.ReturnAfterKill", true);
+                }
+            }
+        }
+        else if (role is StandMaster standMaster)
         {
             if (!standMaster.standCreated)
             {
@@ -462,48 +557,31 @@ public static class StandMasterMurderPatch
                 standMaster.standSummoned = false;
                 standMaster.standReturnPos = null;
                 standMaster.isRevealed = false;
-
                 if (!Utils.RoleSendList.Contains(target.PlayerId))
                     Utils.RoleSendList.Add(target.PlayerId);
-
                 target.RpcSetCustomRole(CustomRoles.Stand, log: null);
                 target.RpcSetRole(RoleTypes.Crewmate);
-
                 _ = new LateTask(() =>
                 {
                     if (target.GetRoleClass() is Stand stand)
                         stand.SetOwner(standMaster.Player.PlayerId);
                 }, 0.2f, "StandMaster.SetOwner", true);
-
                 target.MarkDirtySettings();
                 standMaster.SyncState();
-
                 UtilsGameLog.AddGameLog("StandMaster", $"{UtilsName.GetPlayerColor(standMaster.Player)} が {UtilsName.GetPlayerColor(target)} をスタンドにした");
-
                 _ = new LateTask(() =>
                 {
                     if (standMaster.Player.IsAlive())
                         standMaster.Player.RpcResetAbilityCooldown();
                 }, 0.1f, "StandMaster.ResetPhantomCD", true);
-
-                return false;
             }
+            return false;
         }
-        else if (role is Stand standPlayer)
-        {
-            var sm = standPlayer.GetOwner();
-            if (sm != null)
-            {
-                if (target.PlayerId == sm.Player.PlayerId)
-                {
-                    return false;
-                }
 
-                if (sm.standSummoned)
-                {
-                    _ = new LateTask(() => sm.ReturnStand(), 0.3f, "StandMaster.ReturnAfterKill", true);
-                }
-            }
+        if (__instance.GetCustomRole().IsImpostor() && targetRole is Stand standTarget)
+        {
+            var owner = standTarget.GetOwner();
+            if (owner != null && owner.standSummoned) return true;
         }
 
         return true;

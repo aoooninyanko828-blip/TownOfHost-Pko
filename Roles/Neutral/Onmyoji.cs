@@ -490,7 +490,8 @@ public sealed class Onmyoji : RoleBase, ISelfVoter
             CustomRoles.SwitchSheriff or
             CustomRoles.MeetingSheriff or
             CustomRoles.WolfBoy or
-            CustomRoles.JackalWolf;
+            CustomRoles.JackalWolf or
+            CustomRoles.Stand;
     }
 
     bool CanWinNow()

@@ -3,11 +3,11 @@ using System.Linq;
 using UnityEngine;
 using AmongUs.GameOptions;
 using Hazel;
-using HarmonyLib; // 復活！
+using HarmonyLib;
 
 using TownOfHost.Roles.Core;
 using TownOfHost.Roles.Core.Interfaces;
-using static TownOfHost.Options; // 復活！
+using static TownOfHost.Options;
 
 namespace TownOfHost.Roles.AddOns.Common
 {
@@ -25,7 +25,6 @@ namespace TownOfHost.Roles.AddOns.Common
         static OptionItem OptionSlowSpeed; static float slowSpeed;
         static OptionItem OptionDrainThreshold; static float drainThreshold;
 
-        // ★ 静止判定はハードコード（オプション不要）
         private const float StopDistancePerSec = 0.15f;
 
         private static readonly Dictionary<byte, float> CurrentStamina = new();
@@ -34,13 +33,12 @@ namespace TownOfHost.Roles.AddOns.Common
         private static readonly Dictionary<byte, bool> Initialized = new();
         private static readonly Dictionary<byte, float> NotifyTimer = new();
 
-        // ★ 倍率計算用のキャッシュ
         private static readonly Dictionary<byte, float> BaseSpeed = new();
         private static readonly Dictionary<byte, float> LastSetSpeed = new();
 
         public static void SetupCustomOption()
         {
-            SetupRoleOptions(Id, TabGroup.Addons, CustomRoles.Stamina);
+            SetupRoleOptions(Id, TabGroup.Addons, CustomRoles.Stamina, fromtext: UtilsOption.GetFrom(From.TownOfHost_Pko));
             AddOnsAssignData.Create(Id + 10, CustomRoles.Stamina, true, true, true, true);
             ObjectOptionitem.Create(Id + 20, "AddonOption", true, "", TabGroup.Addons)
                 .SetOptionName(() => "Role Option").SetSubRoleOptionItem(CustomRoles.Stamina);
@@ -58,13 +56,11 @@ namespace TownOfHost.Roles.AddOns.Common
                 new(0.1f, 5f, 0.1f), 0.5f, TabGroup.Addons, false)
                 .SetSubRoleOptionItem(CustomRoles.Stamina);
 
-            // デフォルトを1.0x（本来のスピードの等倍）に変更
             OptionMaxSpeed = FloatOptionItem.Create(Id + 24, "StaminaMaxSpeed",
                 new(0.25f, 3f, 0.05f), 1.0f, TabGroup.Addons, false)
                 .SetSubRoleOptionItem(CustomRoles.Stamina)
                 .SetValueFormat(OptionFormat.Multiplier);
 
-            // デフォルトを0.5x（本来のスピードの半減）に変更
             OptionSlowSpeed = FloatOptionItem.Create(Id + 25, "StaminaSlowSpeed",
                 new(0.1f, 2f, 0.05f), 0.5f, TabGroup.Addons, false)
                 .SetSubRoleOptionItem(CustomRoles.Stamina)
@@ -100,7 +96,7 @@ namespace TownOfHost.Roles.AddOns.Common
             playerIdList.Add(playerId);
             CurrentStamina[playerId] = maxStamina;
             IsExhausted[playerId] = false;
-            Initialized[playerId] = false; // ★ 初回フレームで位置初期化する
+            Initialized[playerId] = false;
             NotifyTimer[playerId] = 0f;
 
             if (AmongUsClient.Instance.AmHost)
@@ -130,7 +126,6 @@ namespace TownOfHost.Roles.AddOns.Common
                 LastPosition[id] = currentPos;
                 Initialized[id] = true;
 
-                // ベース速度の初期化
                 if (Main.AllPlayerSpeed.TryGetValue(id, out float initialSpd))
                     BaseSpeed[id] = initialSpd;
                 else
@@ -139,7 +134,6 @@ namespace TownOfHost.Roles.AddOns.Common
                 return;
             }
 
-            // 外部（他の役職の効果など）からのスピード書き換えを検知してベース速度を更新する
             if (Main.AllPlayerSpeed.TryGetValue(id, out float currentDictSpeed))
             {
                 if (!Mathf.Approximately(currentDictSpeed, LastSetSpeed.GetValueOrDefault(id, -1f)))
@@ -164,7 +158,6 @@ namespace TownOfHost.Roles.AddOns.Common
                 CurrentStamina[id] = Mathf.Min(maxStamina, CurrentStamina[id]);
             }
 
-            // ★ スタミナ割合に応じて現在の「本来のスピード（BaseSpeed）」に対する倍率を掛ける
             float ratio = CurrentStamina[id] / maxStamina;
             float speedMultiplier = Mathf.Lerp(slowSpeed, maxSpeed, ratio);
             float targetSpeed = BaseSpeed.GetValueOrDefault(id, 1f) * speedMultiplier;
@@ -201,7 +194,6 @@ namespace TownOfHost.Roles.AddOns.Common
                 IsExhausted[id] = false;
                 Initialized[id] = false;
 
-                // 会議明けの最新のベース速度を取得
                 if (Main.AllPlayerSpeed.TryGetValue(id, out float spd))
                     BaseSpeed[id] = spd;
                 else
@@ -218,7 +210,7 @@ namespace TownOfHost.Roles.AddOns.Common
             if (Mathf.Approximately(Main.AllPlayerSpeed[playerId], speed)) return;
 
             Main.AllPlayerSpeed[playerId] = speed;
-            LastSetSpeed[playerId] = speed; // 自分が設定した値を記録しておく（外部書き換え検知用）
+            LastSetSpeed[playerId] = speed;
             PlayerCatch.GetPlayerById(playerId)?.MarkDirtySettings();
         }
     }

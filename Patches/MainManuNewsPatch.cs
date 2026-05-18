@@ -312,6 +312,27 @@ public class ModNewsHistory
                 };
                 AllModNews.Add(news);
             }
+            {
+                var news = new ModNews
+                {
+                    Number = 100081,
+                    Title = "ほくほくのさつまいもはいかが？",
+                    SubTitle = "<color=#FF9631>Town Of Host-Pko v4.29.14.61</color>",
+                    ShortTitle = "<color=#FF9631>●TOH-Pko v4.29.14.61</color>",
+                    Text = "・新役職　スタンドマスター、スタンドの追加\n"
+                    + "・さつまといもの追加 From:SuperNewRoles\n"
+                    + "・シャイボーイを第三陣営に変更\n"
+                    + "・イビルゲッサーの会議でidが表示されないバグの修正\n"
+                    + "・ヒッチハイカーちょい修正\n"
+                    + "・ナイストラッパー仕様修正更\n"
+                    + "・自殺願望者の翻訳\n"
+                    + "・画像の変更\n"
+                    + "・その他の変更\n"
+                    ,
+                    Date = "2026-5-18"
+                };
+                AllModNews.Add(news);
+            }
             AnnouncementPopUp.UpdateState = AnnouncementPopUp.AnnounceState.NotStarted;
         }
     }

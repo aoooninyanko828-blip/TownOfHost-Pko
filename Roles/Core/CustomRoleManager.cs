@@ -906,6 +906,9 @@ public enum CustomRoles
     Sage,
     NiceTrapper,
     Moving,
+    SatsumatoImo,
+    SatsumatoImoC,
+    SatsumatoImoM,
     //TOH-K
     Gasp,
     VentMaster,
@@ -917,7 +920,6 @@ public enum CustomRoles
     UltraStar,
     MeetingSheriff,
     GuardMaster,
-    Shyboy,
     Balancer,
     ShrineMaiden,
     Comebacker,
@@ -1019,6 +1021,7 @@ public enum CustomRoles
     StandMaster,
     Chatter,
     BatGirl,
+    Shyboy,
     //DEBUG only Neutral.
     //HideAndSeek
     HASFox,

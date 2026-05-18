@@ -71,9 +71,30 @@ namespace TownOfHost.Roles
         };
         private static CustomRoles[] AllMainRoles => GameModeManager.IsStandardClass() ? CustomRolesHelper.AllStandardRoles : CustomRolesHelper.AllHASRoles;
         public static OptionItem OptionAssignMode;
+        public static OptionItem OptionAssignMadmateFromCrewmateSlot;
+        public static OptionItem OptionAssignMadmateFromCrewmateSlotMax;
         private static Dictionary<CustomRoleTypes, RandomAssignOptions> RandomAssignOptionsCollection = new(CustomRolesHelper.AllRoleTypes.Length);
         private static Dictionary<CustomRoleTypes, int> AssignCount = new(CustomRolesHelper.AllRoleTypes.Length);
         private static List<CustomRoles> AssignRoleList = new(CustomRolesHelper.AllRoles.Length);
+        private static bool UseCrewmateSlotForMadmateInRandom
+            => AssignMode == AssignAlgorithm.Random && OptionAssignMadmateFromCrewmateSlot?.GetBool() == true;
+        private static int MaxMadmateFromCrewmateSlotInRandom
+            => OptionAssignMadmateFromCrewmateSlotMax?.GetInt() ?? 15;
+
+        private static CustomRoleTypes NormalizeRandomAssignRoleType(CustomRoleTypes roleType)
+            => UseCrewmateSlotForMadmateInRandom && roleType == CustomRoleTypes.Madmate
+                ? CustomRoleTypes.Crewmate
+                : roleType;
+        private static Dictionary<CustomRoleTypes, int> GetRequiredAssignCounts(IEnumerable<CustomRoles> roles)
+        {
+            var counts = new Dictionary<CustomRoleTypes, int>();
+            foreach (var role in roles)
+            {
+                var type = NormalizeRandomAssignRoleType(role.GetAssignRoleType());
+                counts[type] = counts.TryGetValue(type, out var current) ? current + 1 : 1;
+            }
+            return counts;
+        }
         public static void SetupOptionItem()
         {
             OptionAssignMode = StringOptionItem.Create(idStart, "AssignMode", AssignModeSelections, 0, TabGroup.MainSettings, false)
@@ -86,6 +107,13 @@ namespace TownOfHost.Roles
             RandomAssignOptions.Create(20, OptionAssignMode, CustomRoleTypes.Madmate);
             RandomAssignOptions.Create(30, OptionAssignMode, CustomRoleTypes.Crewmate);
             RandomAssignOptions.Create(40, OptionAssignMode, CustomRoleTypes.Neutral);
+            OptionAssignMadmateFromCrewmateSlot = BooleanOptionItem.Create(idStart + 50, "AssignMadmateFromCrewmateSlot", false, TabGroup.MainSettings, false)
+                .SetParent(OptionAssignMode)
+                .SetEnabled(() => OptionAssignMode.GetBool());
+            OptionAssignMadmateFromCrewmateSlotMax = IntegerOptionItem.Create(idStart + 51, "AssignMadmateFromCrewmateSlotMax", new(0, 15, 1), 15, TabGroup.MainSettings, false)
+                .SetParent(OptionAssignMadmateFromCrewmateSlot)
+                .SetValueFormat(OptionFormat.Players)
+                .SetEnabled(() => OptionAssignMode.GetBool() && OptionAssignMadmateFromCrewmateSlot.GetBool());
         }
         public static (bool, int, int) CheckRoleTypeCount(CustomRoleTypes role)
         {
@@ -302,15 +330,26 @@ namespace TownOfHost.Roles
             List<(CustomRoles, int)> randomRoleTicketPool = new(); //ランダム抽選時のプール
             var rand = IRandom.Instance;
             var assignCount = new Dictionary<CustomRoleTypes, int>(AssignCount); //アサイン枠のDictionary
+            int assignedMadmateFromCrewSlot = 0;
+
+            if (UseCrewmateSlotForMadmateInRandom)
+            {
+                var madmateCount = assignCount.TryGetValue(CustomRoleTypes.Madmate, out var madCount) ? madCount : 0;
+                assignCount[CustomRoleTypes.Crewmate] = (assignCount.TryGetValue(CustomRoleTypes.Crewmate, out var crewCount) ? crewCount : 0) + madmateCount;
+                assignCount[CustomRoleTypes.Madmate] = 0;
+            }
 
             foreach (var role in GetCandidateRoleList(100).OrderBy(x => Guid.NewGuid()))
             {
                 var targetRoles = role.GetAssignUnitRolesArray();
+                var requiredCounts = GetRequiredAssignCounts(targetRoles);
+                if (UseCrewmateSlotForMadmateInRandom)
+                {
+                    var madmateNeed = targetRoles.Count(x => x.GetAssignRoleType() == CustomRoleTypes.Madmate);
+                    if (assignedMadmateFromCrewSlot + madmateNeed > MaxMadmateFromCrewmateSlotInRandom) continue;
+                }
                 //アサイン枠が足りてない場合
-                if (CustomRolesHelper.AllRoleTypes.Any(
-                    type => assignCount.TryGetValue(type, out var count) &&
-                    targetRoles.Count(role => role.GetAssignRoleType() == type) > count
-                )) continue;
+                if (requiredCounts.Any(kvp => !assignCount.TryGetValue(kvp.Key, out var count) || kvp.Value > count)) continue;
 
                 foreach (var _targetRole in targetRoles)
                 {
@@ -324,9 +363,11 @@ namespace TownOfHost.Roles
                     });
                     if (result) continue;
                     AssignRoleList.Add(targetRole);
-                    var targetRoleType = targetRole.GetAssignRoleType();
+                    var targetRoleType = NormalizeRandomAssignRoleType(targetRole.GetAssignRoleType());
                     if (assignCount.ContainsKey(targetRoleType))
                         assignCount[targetRoleType]--;
+                    if (UseCrewmateSlotForMadmateInRandom && targetRole.GetAssignRoleType() == CustomRoleTypes.Madmate)
+                        assignedMadmateFromCrewSlot++;
                 }
             }
 
@@ -350,8 +391,18 @@ namespace TownOfHost.Roles
             {
                 var selectedTicket = randomRoleTicketPool[rand.Next(randomRoleTicketPool.Count)];
                 var targetRoles = selectedTicket.Item1.GetAssignUnitRolesArray();
+                var requiredCounts = GetRequiredAssignCounts(targetRoles);
+                if (UseCrewmateSlotForMadmateInRandom)
+                {
+                    var madmateNeed = targetRoles.Count(x => x.GetAssignRoleType() == CustomRoleTypes.Madmate);
+                    if (assignedMadmateFromCrewSlot + madmateNeed > MaxMadmateFromCrewmateSlotInRandom)
+                    {
+                        randomRoleTicketPool.RemoveAll(x => x == selectedTicket);
+                        continue;
+                    }
+                }
                 //アサイン枠が足りていれば追加
-                if (CustomRolesHelper.AllRoleTypes.All(type => targetRoles.Count(role => role.GetAssignRoleType() == type) <= assignCount[type]))
+                if (requiredCounts.All(kvp => assignCount.TryGetValue(kvp.Key, out var count) && kvp.Value <= count))
                 {
                     foreach (var _targetRole in targetRoles)
                     {
@@ -365,7 +416,9 @@ namespace TownOfHost.Roles
                         });
                         if (result) continue;
                         AssignRoleList.Add(targetRole);
-                        assignCount[targetRole.GetAssignRoleType()]--;
+                        assignCount[NormalizeRandomAssignRoleType(targetRole.GetAssignRoleType())]--;
+                        if (UseCrewmateSlotForMadmateInRandom && targetRole.GetAssignRoleType() == CustomRoleTypes.Madmate)
+                            assignedMadmateFromCrewSlot++;
                     }
                 }
                 //1-9個ある同じチケットを削除

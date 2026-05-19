@@ -133,6 +133,18 @@ public sealed class MeetingSheriff : RoleBase, ISelfVoter
         var target = PlayerCatch.GetPlayerById(votedForId);
         if (!target.IsAlive()) return;
         if (!AmongUsClient.Instance.AmHost) return;
+        if (target.Is(CustomRoles.Stand))
+        {
+            var sm = target.GetRoleClass() as TownOfHost.Roles.Neutral.Stand;
+            var owner = sm?.GetOwner();
+            if (owner != null && owner.Player.IsAlive())
+            {
+                Utils.SendMessage(
+                    "<color=#8B4513>残念だったな！スタンドは撃ち抜けないんだぜ！</color>",
+                    Player.PlayerId);
+                return;
+            }
+        }
         var meetingHud = MeetingHud.Instance;
         var hudManager = DestroyableSingleton<HudManager>.Instance.KillOverlay;
         Usedcount++;

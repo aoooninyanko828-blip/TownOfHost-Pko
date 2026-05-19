@@ -24,9 +24,13 @@ public sealed class StandMaster : RoleBase, ILNKiller, IUsePhantomButton
             SetupOptionItem,
             "stm",
             "#8B4513",
-            (7, 3),
+            (6, 4),
             true,
-            countType: CountTypes.StandMaster,
+            countType: CountTypes.Crew,
+            assignInfo: new RoleAssignInfo(CustomRoles.StandMaster, CustomRoleTypes.Neutral)
+            {
+                AssignCountRule = new(1, 1, 1)
+            },
             from: From.TownOfHost_Pko
         );
 
@@ -46,8 +50,8 @@ public sealed class StandMaster : RoleBase, ILNKiller, IUsePhantomButton
 
     static OptionItem OptionSummonCooldown;
     static OptionItem OptionStandStayTime;
-    static float SummonCooldown;
-    static float StandStayTime;
+    public static float SummonCooldown;
+    public static float StandStayTime;
 
     enum OptionName
     {
@@ -189,7 +193,6 @@ public sealed class StandMaster : RoleBase, ILNKiller, IUsePhantomButton
 
     public void OnClick(ref bool AdjustKillCooldown, ref bool? ResetCooldown)
     {
-
         if (!Player.IsAlive()) return;
         if (!standCreated) return;
 
@@ -363,7 +366,8 @@ public sealed class Stand : RoleBase, ILNKiller
             SetupOptionItem,
             "st",
             "#8B4513",
-            (7, 3),
+            (6, 4),
+            countType: CountTypes.StandMaster,
             from: From.TownOfHost_Pko
         );
 
@@ -372,7 +376,10 @@ public sealed class Stand : RoleBase, ILNKiller
         OwnerId = byte.MaxValue;
     }
 
-    static void SetupOptionItem() { }
+    static void SetupOptionItem()
+    {
+        StandMaster.HideRoleOptions(CustomRoles.Stand);
+    }
 
     public byte OwnerId;
 
@@ -386,6 +393,11 @@ public sealed class Stand : RoleBase, ILNKiller
     {
         if (OwnerId == byte.MaxValue) return null;
         return PlayerCatch.GetPlayerById(OwnerId)?.GetRoleClass() as StandMaster;
+    }
+
+    public override void ApplyGameOptions(IGameOptions opt)
+    {
+        AURoleOptions.PhantomCooldown = StandMaster.StandStayTime;
     }
 
     public override void OverrideDisplayRoleNameAsSeer(PlayerControl seen, ref bool enabled, ref Color roleColor, ref string roleText, ref bool addon)

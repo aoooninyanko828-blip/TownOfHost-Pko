@@ -83,6 +83,9 @@ namespace TownOfHost
                 seer.GetRoleClass()?.OverrideDisplayRoleNameAsSeer(seen, ref enabled, ref roleColor, ref roleText, ref addon);
             if (text == roleText && !ch)//アドオンの上書きチェック
                 (roleColor, roleText) = GetTrueRoleNameData(seen.PlayerId, addon);
+            // 一応ここでも君臨者をみることができなくする
+            if (seen.Is(CustomRoles.King) && (seer.Is(CustomRoles.SatsumatoImoC) || seer.Is(CustomRoles.SatsumatoImoM)))
+                enabled = false;
 
             return enabled ? ColorString(roleColor, roleText) : "";
         }

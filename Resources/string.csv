@@ -85,6 +85,7 @@
 "Samurai","Samurai","侍"
 "Rocket","Rocket","ロケット"
 "SmokeMaker","SmokeMaker","スモークメーカー"
+"EvilMoving","EvilMoving","イビルムービング"
 "#ImpostorName"
 
 "# マッドメイト系役職"
@@ -170,9 +171,9 @@
 "Hitchhiker","Hitchhiker","ヒッチハイカー"
 "Moving","Moving","ムービング"
 "NiceTrapper","NiceTrapper","ナイストラッパー"
-"SatsumatoImo","SatsumatoImo","さつもといも"
-"SatsumatoImoC","SatsumatoImo(C)","さつもといも(C)"
-"SatsumatoImoM","SatsumatoImo(M)","さつもといも(M)"
+"SatsumatoImo","SatsumatoImo","さつまといも"
+"SatsumatoImoC","SatsumatoImo(C)","さつまといも(C)"
+"SatsumatoImoM","SatsumatoImo(M)","さつまといも(M)"
 "#CrewmateName"
 
 "# ニュートラル役職"
@@ -430,6 +431,7 @@
 "SamuraiInfo","Let's rip the crew apart!","クルーを切り裂こう！","","","",""
 "RocketInfo","Soar high into the sky!","空高く打ち上がれ！"
 "SmokeMakerInfo","Smoke and confuse the crew","煙でクルーを混乱させよう","","","",""
+"EvilMovingInfo","","テレポートをしてキルしよう"
 "#ImpostorInfo"
 
 "# マッドメイト系役職"
@@ -735,6 +737,7 @@
 "SamuraiInfoLong",samurai is very saikyou(?)","ファントムボタンを押し自分の前方にいるプレイヤーを範囲キルすることができます\n設定によりサボタージュやベントを使用することができません。"
 "RocketInfoLong","This role normally cannot perform kills.\nLike the Imposter Penguin, you can drag other crew members around using the kill button.\nThere is no time limit on how long you can hold someone. You can hold any number of people.\nIf a meeting is called before you can use the launch ability, you will miss the launch.\nIf you are not expelled from the meeting and the meeting ends, you will launch the person you were holding at the end of the meeting.\nYou can use the Phantom button to launch the person you are holding into the air and kill them.\nNo body remains. An explosion sound like fireworks will occur from the launch location.","この役職は通常キルが出来ない。\nインポスター役職ペンギンのように他クルーをキルボタンで連れ回すことが出来る。\n掴んでいられる時間に制限はない。何人でも掴むことが出来る。\n打ち上げる能力を使用前に会議を呼ばれてしまうと打ち上げ損なってしまう。\nその会議で追放されずに会議が終了すれば会議終了時点で掴んでいた人を打ち上げる。\nファントムボタンで掴んでいる人を上に打ち上げてキルすることができる。\n死体は残らない。打ち上げた場所から花火のような爆発音が鳴る。"
 "SmokeMakerInfoLong","","スモークを発生させるインポスター。\nペットを撫でることでスモークを設置。設置されたスモークはファントムボタンで起爆させることができる。\nアモングアスの仕様でスモークの下の方は名前表示されるらしい。\nスモーク設置クールタイムは名前の右に表示されるよ"
+"EvilMoving","","ペットを撫でることで1試合で1回だけワープ先を設定出来る。設定後はペットを撫でることでワープ先にワープ出来る。\nクールタイムはファントムのクールタイムでわかります。"
 "#ImpostorInfoLong"
 
 "# マッドメイト系役職"
@@ -818,12 +821,12 @@
 "NiceGuesserInfoLong","On Meeting Can Guess.","会議中に誰かの役職を推測でき、的中すると対象をキルすることができる。\nただし、推測が外れると自殺する。\n\nチャットに「/cmd bt (ID) (役職名)」と送信することで推測ができる。\nプレイヤー名の左側に表示されている数字が、そのプレイヤーのIDである。"
 "NimrodInfoLong","","自身が追放された時、再びニムロッド投票用の会議が開かれる。ここでは追放されたらニムロッド以外は議論するべからず。1人を投票で選択して道連れ処刑することができる"
 "HitchhikerInfoLong","Slow-footed pets can be petted to cling to nearby players like penguins. Petting the pet again will cancel the effect. The cooldown is displayed in the vent.","足が遅い\nぺっとを撫でて近くにいるプレイヤーにペンギンのようにくっつくことができる。もう一度ペットを撫でることで解除。\nクールタイムはベントで表示。"
-"MovingInfoLong","","ペットを撫でることで1試合で1回だけワープ先を任意で設定出来る。設定後は任意のタイミングでペットを撫でることでワープ先にワープ出来る。"
+"MovingInfoLong","","ペットを撫でることで1試合で1回だけワープ先を設定出来る。設定後はペットを撫でることでワープ先にワープ出来る。\nベントボタンでクールタイムがわかる。"
 "NiceTrapperInfoLong","","見方の支援や敵の妨害、情報収集など、さまざまに活用できるトラップを設置できるクルーメイト。\nナイストラッパーは３種類のトラップを設置できます。\n現在設置できるトラップは名前の右に表示されます。(3秒経つ度に現在設置できるトラップは変化します)\nトラップはペットを撫でることで設置できます。\nトラップ設置後、会議を挟んでから有効化されます。\n1.加速トラップ　トラップの色:青　トラップに近づくとスピードが速くなります。\n2.減速トラップ　トラップの色:赤　トラップに近づくとスピードが遅くなります。\n3.探知トラップ　トラップの色:黄　このトラップは皆から見えません。プレイヤーがトラップに近づくと踏んだトラップの方向に矢印が表示されます。矢印の色は踏んだプレイヤーの色です。"
 "NiceEraserInfoLong","","規定タスクを完了させると能力を使えるようになる。\n会議で自投票すると、更生モードに変更できる。\n更生モードで人を指定するとその人を更生させることができ、更生させられた対象は次ターンが始まるときにクルーメイトに変わる。"
-"SatsumatoImoInfoLong","","特に能力を有さないクルーメイト兼マッドメイトです。\n会議を挟むごとにクルーメイトとマッドメイトに交互に変化します。\n勝利条件もターンごとに変化します。"
-"SatsumatoImoCInfoLong","","特に能力を有さないクルーメイトです。\n会議を挟むごとにクルーメイトとマッドメイトに交互に変化します。\n勝利条件もターンごとに変化します。"
-"SatsumatoImoMInfoLong","","特に能力を有さないマッドメイトです。\n会議を挟むごとにクルーメイトとマッドメイトに交互に変化します。\n勝利条件もターンごとに変化します。"
+"SatsumatoImoInfoLong","","特に能力を有さないクルーメイト兼マッドメイトです。\n会議を挟むごとにクルーメイトとマッドメイトに交互に変化します。\n勝利条件もターンごとに変化します。\n君臨者を見ることはできない仕様です。"
+"SatsumatoImoCInfoLong","","特に能力を有さないクルーメイトです。\n会議を挟むごとにクルーメイトとマッドメイトに交互に変化します。\n勝利条件もターンごとに変化します。\n君臨者を見ることはできない仕様です。"
+"SatsumatoImoMInfoLong","","特に能力を有さないマッドメイトです。\n会議を挟むごとにクルーメイトとマッドメイトに交互に変化します。\n勝利条件もターンごとに変化します。\n君臨者を見ることはできない仕様です。"
 "#CrewmateInfoLong"
 
 "# ニュートラル役職"
@@ -884,8 +887,8 @@
 "SuiciderInfoLong","You have a self-destruct timer that will cause you to self-destruct when it reaches 0.\nCompleting tasks extends the timer.\nYou can set your own fall-death probability, independent of the fall-death setting.\nYou can set your own number of tasks.\n~Victory Conditions~\nCompleting tasks while alive results in a solo victory.\nIf you are still alive when another faction wins, you receive an additional victory.","自爆タイマーを持っていて0になると自爆します(タイマーはベントで表示)\nタスクを行うとタイマーが伸びます\n転落死設定に依存せず、独自の転落死確率を設定できます。\nタスク数を独自で設定できます\n～勝利条件～\n生存していてタスクを完了させると単独勝利\n他陣営が勝利した時に自分が生存していると追加勝利"
 "JackalWolfInfoLong","","ジャッカルウルフはすべてのプレイヤーを殺すことができる。\nまた、設定されているインポスターの能力を併せて持つことができる。\nインポスターが残っておらず、生き残っているジャッカルの人数がクルーと同じかそれ以上でジャッカルが勝利する。"
 "SageInfoLong","Use your pet action to deploy a barrier for a set duration.\nWhile the barrier is active, you cannot move and any kill against you is blocked and reflected to the attacker.\nWhen the barrier ends, it goes on cooldown.","ペットを撫でると一定時間バリアを展開できる。\nバリア中は移動できない\nバリア展開中はキルを反射しキラーをキルできる。"
-"StandMasterInfoLong","","キルボタンで近くにいるプレイヤーを一度だけスタンドに指名できる。\n指名したスタンドをファントムボタンで自分のところにワープさせることができる。\nスタンドマスターが死亡するとスタンドは道連れされる。\n滞在時間を過ぎると強制的に元の位置に戻る。ファントムのCDで残り滞在時間がわかる。\n勝利条件\n・スタンドマスターが生存している。\n・スタンドマスター陣営以外のキル可能陣営を全滅させる。\n・クルーメイト(カウントされる役職)の人数を自陣営以下にすること。"
-"StandInfoLong","","スタンドはスタンドマスターがワープさせた時のみキルが可能になる。\nキルをするとワープされる元の位置に戻る。\nスタンドはスタンドマスターをキルすることができない。\nスタンドはスタンドマスターが死亡しない限り死なない。ただし、死亡しそうになると会議でスタンドが告知される。\nスタンドはシュレ猫等を仲間にできない。\nスタンドにキルクールは存在しない。\nスタンドマスターが勝利で追加勝利。"
+"StandMasterInfoLong","","キルボタンで近くにいるプレイヤーを一度だけスタンドに指名できる。\n指名したスタンドをファントムボタンで自分のところにワープさせることができる。\nスタンドマスターが死亡するとスタンドは道連れされる。\n滞在時間を過ぎると強制的に元の位置に戻る\n勝利条件\n・スタンドマスターが生存している。\n・スタンド以外のキル可能陣営を全滅させる。\n・クルーメイト(カウントされる役職)の人数を自陣営以下にすること。"
+"StandInfoLong","","スタンドはスタンドマスターがワープさせた時のみキルが可能になる。\nキルをするとワープされる元の位置に戻る。\nスタンドはスタンドマスターをキルすることができない。\nスタンドはスタンドマスターが死亡しない限り死なない。ただし、死亡しそうになると会議でスタンドが告知される。ファントムのCDで残り滞在時間がわかる。\nスタンドはシュレ猫等を仲間にできない。\nスタンドにキルクールは存在しない。\nスタンドマスターが勝利で追加勝利。"
 "ShyboyInfoLong","When someone is within a certain range, VentCool decreases. when no one is present, it recovers.\nWhen Vent Cool reaches 0 seconds remaining, it triggers a seizure and results in death.","一定範囲内に誰かがいるとベントクールが減少し、誰もいないと回復する。\nベントクールが残り0秒になると、発作を起こして死亡してしまう。\n生き残りで単独勝利。"
 "#NeutralInfoLong"
 
@@ -1652,6 +1655,7 @@
 "SmokeMakerSmokeDuration","Smoke Duration","スモーク持続時間"
 "SmokeMakerSmokeSize","Smoke Size","スモークサイズ"
 "SmokeMakerMaxDummies","Max Dummies","最大設置数"
+"EvilMovingTeleportCooldown","Teleport Cooldown","テレポートクールダウン",""
 
 "## MadMate Role Setting"
 "MadmateOption","MadMate Options","マッドメイト系役職の設定"

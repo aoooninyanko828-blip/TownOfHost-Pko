@@ -1,7 +1,7 @@
-/*using AmongUs.GameOptions;
+using AmongUs.GameOptions;
 using HarmonyLib;
-using Hazel;
 using TownOfHost.Modules;
+using TownOfHost.Modules.ChatManager;
 using TownOfHost.Roles.Core;
 using TownOfHost.Roles.Core.Interfaces;
 using UnityEngine;
@@ -21,7 +21,8 @@ public sealed class Chatter : RoleBase
             SetupOptionItem,
             "ct",
             "#FF66B2",
-            (5, 0)
+            (5, 0),
+            from: From.TownOfHost_Pko
         );
 
     public Chatter(PlayerControl player) : base(RoleInfo, player, () => HasTask.False)
@@ -64,45 +65,48 @@ public sealed class Chatter : RoleBase
 
     public void UpdateMeetingTimer()
     {
+        if (AmongUsClient.Instance == null || !AmongUsClient.Instance.AmHost) return;
+        if (!GameStates.IsInGame || !GameStates.IsMeeting) return;
+        if (Player == null || !Player || Player.Data == null || Player.Data.Disconnected) return;
         if (!Player.IsAlive()) return;
         if (MeetingHud.Instance == null || (int)MeetingHud.Instance.state >= 3) return;
 
         meetingActiveTimer += Time.deltaTime;
-
         if (meetingActiveTimer <= 10f) return;
 
         timeSinceLastChat += Time.deltaTime;
+        if (timeSinceLastChat < ChatTimeLimit) return;
 
-        if (AmongUsClient.Instance.AmHost && timeSinceLastChat >= ChatTimeLimit)
+        var chatterId = Player.PlayerId;
+        timeSinceLastChat = -9999f;
+
+        Utils.SendMessage(
+            $"<color=#FFCC00><b>【=== おい!!見ろ!!あいつが!! ===】</b></color>\n{UtilsName.GetPlayerColor(Player)} が急に意識を失った。\nどうしたんだろうな。",
+            title: GetString("MSKillTitle"));
+
+        _ = new LateTask(() =>
         {
-            string msg = $"<color=#FFCC00><b>【=== おい!!見ろ!!あいつが!! ===】</b></color>\n{UtilsName.GetPlayerColor(Player)}が急に意識を失った。\nどうしたんだろうな。";
+            if (!GameStates.IsInGame || !GameStates.IsMeeting || AmongUsClient.Instance == null || !AmongUsClient.Instance.AmHost)
+                return;
 
-            MessageWriter writer = AmongUsClient.Instance.StartRpcImmediately(
-                Player.NetId, (byte)RpcCalls.SendChat, SendOption.Reliable, -1);
-            writer.Write(msg);
-            AmongUsClient.Instance.FinishRpcImmediately(writer);
+            var chatter = PlayerCatch.GetPlayerById(chatterId);
+            if (chatter == null || !chatter || chatter.Data == null || chatter.Data.Disconnected || !chatter.IsAlive())
+                return;
 
-            if (DestroyableSingleton<HudManager>.Instance && DestroyableSingleton<HudManager>.Instance.Chat)
-                DestroyableSingleton<HudManager>.Instance.Chat.AddChat(Player, msg);
+            var playerState = PlayerState.GetByPlayerId(chatterId);
+            if (playerState == null || playerState.IsDead) return;
 
-            var playerState = PlayerState.GetByPlayerId(Player.PlayerId);
             playerState.DeathReason = CustomDeathReason.Suicide;
-            Player.SetRealKiller(Player);
-            MeetingVoteManager.ResetVoteManager(Player.PlayerId);
+            chatter.SetRealKiller(chatter);
+            MeetingVoteManager.ResetVoteManager(chatterId);
 
-            _ = new LateTask(() =>
-            {
-                // ★ アンチチート回避: 自分→自分ではなくホスト(LocalPlayer)→チャッターの形でキル
-                if (!Player.IsModClient() && !Player.AmOwner)
-                    PlayerControl.LocalPlayer.RpcMeetingKill(Player);
-                CustomRoleManager.OnMurderPlayer(Player, Player);
-            }, Main.LagTime, "ChatterKill");
+            if (!chatter.IsModClient() && !chatter.AmOwner) chatter.RpcMeetingKill(chatter);
+            CustomRoleManager.OnMurderPlayer(chatter, chatter);
 
-            UtilsGameLog.AddGameLog("Chatter",
-                $"{UtilsName.GetPlayerColor(Player)} は無言に耐えきれず息絶えた");
+            _ = new LateTask(() => ChatManager.OnDisconnectOrDeadPlayer(chatterId), 0.1f, "チャッター死亡チャット同期");
+        }, Main.LagTime, "ChatterKill");
 
-            timeSinceLastChat = -9999f;
-        }
+        UtilsGameLog.AddGameLog("Chatter", $"{UtilsName.GetPlayerColor(Player)} 沈黙に耐えられず死んじゃった！");
     }
 
     public static bool CheckWin(ref GameOverReason reason)
@@ -128,10 +132,11 @@ public static class Chatter_AddChat_Patch
 {
     public static void Postfix(PlayerControl sourcePlayer, string chatText)
     {
-        if (!AmongUsClient.Instance.AmHost) return;
-        if (sourcePlayer == null) return;
-        if (sourcePlayer.GetRoleClass() is not Chatter chatter) return;
+        if (AmongUsClient.Instance == null || !AmongUsClient.Instance.AmHost) return;
+        if (!GameStates.IsInGame || !GameStates.IsMeeting) return;
+        if (sourcePlayer == null || !sourcePlayer) return;
         if (!sourcePlayer.IsAlive()) return;
+        if (sourcePlayer.GetRoleClass() is not Chatter chatter) return;
 
         // ★ /cmd を含むメッセージはコマンドなのでリセットしない
         if (chatText != null && chatText.TrimStart().StartsWith("/cmd"))
@@ -146,12 +151,16 @@ public static class Chatter_MeetingHud_Update_Patch
 {
     public static void Postfix()
     {
+        if (!GameStates.IsInGame || !GameStates.IsMeeting) return;
+        if (PlayerControl.AllPlayerControls == null) return;
+
         foreach (var pc in PlayerControl.AllPlayerControls)
         {
+            if (pc == null || !pc) continue;
             if (pc.GetRoleClass() is Chatter chatter)
             {
                 chatter.UpdateMeetingTimer();
             }
         }
     }
-}*/
+}

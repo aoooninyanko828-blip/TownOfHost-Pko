@@ -42,7 +42,7 @@ public sealed class SatsumatoImo : RoleBase
             SetupOptionItem,
             "si",
             "#990044",
-            (0, 0),
+            (4, 2),
             introSound: () => GetIntroSound(RoleTypes.Impostor)
         );
 

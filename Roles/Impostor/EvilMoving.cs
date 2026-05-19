@@ -1,4 +1,5 @@
-/*using AmongUs.GameOptions;
+using System.Collections.Generic;
+using AmongUs.GameOptions;
 using Hazel;
 using TownOfHost.Patches;
 using TownOfHost.Roles.Core;
@@ -7,36 +8,31 @@ using UnityEngine;
 
 namespace TownOfHost.Roles.Impostor;
 
-public sealed class EvilMoving : RoleBase, IImpostor
+public sealed class EvilMoving : RoleBase, IImpostor, IUsePhantomButton
 {
     public static readonly SimpleRoleInfo RoleInfo =
         SimpleRoleInfo.Create(
             typeof(EvilMoving),
             player => new EvilMoving(player),
             CustomRoles.EvilMoving,
-            () => RoleTypes.Impostor,
+            () => RoleTypes.Phantom,
             CustomRoleTypes.Impostor,
             126500,
             SetupOptionItem,
             "emv",
-            OptionSort: (3, 16),
+            OptionSort: (2, 10),
             from: From.SuperNewRoles
         );
 
     public EvilMoving(PlayerControl player) : base(RoleInfo, player)
     {
-        KillCooldown = OptionKillCooldown.GetFloat();
         TeleportCooldown = OptionTeleportCooldown.GetFloat();
-
         markedPos = null;
         hasMarked = false;
         cooldownLeft = 0f;
-
         PetActionManager.Register(Player.PlayerId, OnPet);
     }
 
-    static OptionItem OptionKillCooldown;
-    static float KillCooldown;
     static OptionItem OptionTeleportCooldown;
     static float TeleportCooldown;
 
@@ -51,15 +47,38 @@ public sealed class EvilMoving : RoleBase, IImpostor
 
     static void SetupOptionItem()
     {
-        OptionKillCooldown = FloatOptionItem.Create(RoleInfo, 10, GeneralOption.KillCooldown,
-            new(0f, 180f, 0.5f), 30f, false).SetValueFormat(OptionFormat.Seconds);
-        OptionTeleportCooldown = FloatOptionItem.Create(RoleInfo, 11, OptionName.EvilMovingTeleportCooldown,
+        OptionTeleportCooldown = FloatOptionItem.Create(RoleInfo, 10, OptionName.EvilMovingTeleportCooldown,
             new(2.5f, 120f, 2.5f), 30f, false).SetValueFormat(OptionFormat.Seconds);
     }
 
-    public float CalculateKillCooldown() => KillCooldown;
+    public float CalculateKillCooldown() => Main.AllPlayerKillCooldown.GetValueOrDefault(Player.PlayerId, Main.NormalOptions.KillCooldown);
     public bool CanUseSabotageButton() => true;
     public bool CanUseImpostorVentButton() => true;
+    bool IUsePhantomButton.IsPhantomRole => true;
+    bool IUsePhantomButton.IsresetAfterKill => false;
+
+    public override void OnSpawn(bool initialState = false)
+    {
+        cooldownLeft = TeleportCooldown + 1.5f;
+        Player.RpcResetAbilityCooldown(Sync: true);
+    }
+
+    public override void Add()
+    {
+        markedPos = null;
+        hasMarked = false;
+        cooldownLeft = TeleportCooldown;
+        PetActionManager.Register(Player.PlayerId, OnPet);
+    }
+
+    public override void OnDestroy()
+    {
+        PetActionManager.Unregister(Player.PlayerId);
+    }
+    public override void ApplyGameOptions(IGameOptions opt)
+    {
+        AURoleOptions.PhantomCooldown = cooldownLeft > 0f ? cooldownLeft : 0.1f;
+    }
 
     void OnPet()
     {
@@ -71,9 +90,8 @@ public sealed class EvilMoving : RoleBase, IImpostor
             markedPos = Player.transform.position;
             hasMarked = true;
             cooldownLeft = TeleportCooldown;
-            SendRpc();
-            Player.MarkDirtySettings();
             Player.RpcResetAbilityCooldown(Sync: true);
+            SendRpc();
             UtilsNotifyRoles.NotifyRoles(OnlyMeName: true);
             Utils.SendMessage(
                 $"<color=#ff4444>ワープ先を設定しました！</color>",
@@ -87,9 +105,8 @@ public sealed class EvilMoving : RoleBase, IImpostor
         {
             var capturedPos = markedPos.Value;
             cooldownLeft = TeleportCooldown;
-            SendRpc();
-            Player.MarkDirtySettings();
             Player.RpcResetAbilityCooldown(Sync: true);
+            SendRpc();
 
             _ = new LateTask(() =>
             {
@@ -118,34 +135,6 @@ public sealed class EvilMoving : RoleBase, IImpostor
         }
     }
 
-    public override void OnDestroy()
-    {
-        PetActionManager.Unregister(Player.PlayerId);
-    }
-
-    public override void ApplyGameOptions(IGameOptions opt)
-    {
-        AURoleOptions.EngineerCooldown = cooldownLeft > 0f ? cooldownLeft : TeleportCooldown;
-        AURoleOptions.EngineerInVentMaxTime = 0f;
-    }
-
-    public override string GetLowerText(PlayerControl seer, PlayerControl seen = null,
-        bool isForMeeting = false, bool isForHud = false)
-    {
-        seen ??= seer;
-        if (!Is(seer) || seer.PlayerId != seen.PlayerId || !Player.IsAlive()) return "";
-        if (isForMeeting) return "";
-
-        string size = isForHud ? "" : "<size=60%>";
-        string color = RoleInfo.RoleColorCode;
-
-        if (!hasMarked)
-            return $"{size}<color={color}>ペットを撫でてワープ先を設定</color>";
-        if (cooldownLeft > 0f)
-            return $"{size}<color=#888888>ワープCD: {Mathf.CeilToInt(cooldownLeft)}s</color>";
-        return $"{size}<color={color}>ペットを撫でてワープ！</color>";
-    }
-
     void SendRpc()
     {
         using var sender = CreateSender();
@@ -168,4 +157,4 @@ public sealed class EvilMoving : RoleBase, IImpostor
             ? new Vector2(reader.ReadSingle(), reader.ReadSingle())
             : null;
     }
-}*/
+}

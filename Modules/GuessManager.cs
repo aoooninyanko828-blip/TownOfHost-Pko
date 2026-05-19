@@ -147,6 +147,24 @@ public static class GuessManager
                 if (role == CustomRoles.GM || target.Is(CustomRoles.GM) || role.IsAddOn() || role.IsGhostRole())
                     return true;
 
+                if (target.Is(CustomRoles.Stand))
+                {
+                    var standRole = target.GetRoleClass() as TownOfHost.Roles.Neutral.Stand;
+                    var owner = standRole?.GetOwner();
+                    if (owner != null && owner.Player.IsAlive())
+                    {
+                        if (!owner.isRevealed)
+                        {
+                            owner.isRevealed = true;
+                            owner.SyncState();
+                        }
+                        Utils.SendMessage(
+                            "<color=#8B4513>残念だったな！スタンドは撃ち抜けないんだぜ！</color>",
+                            pc.PlayerId);
+                        return true;
+                    }
+                }
+
                 if (pc.Is(CustomRoles.Egoist) && target.Is(CustomRoleTypes.Impostor) && Guesser.ICanGuessNakama.GetBool())
                     return true;
 

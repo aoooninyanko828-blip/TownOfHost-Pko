@@ -128,6 +128,7 @@ public sealed class King : RoleBase
     {
         seer ??= Player;
         if (seer == Player) return;
+        if (seer.Is(CustomRoles.SatsumatoImoC) || seer.Is(CustomRoles.SatsumatoImoM)) return;
         if (seer.Is(CustomRoleTypes.Crewmate) || seer.Is(CustomRoles.BakeCat))
         {
             enabled = true;

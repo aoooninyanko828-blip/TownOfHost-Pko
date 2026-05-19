@@ -333,6 +333,26 @@ public class ModNewsHistory
                 };
                 AllModNews.Add(news);
             }
+            {
+                var news = new ModNews
+                {
+                    Number = 100082,
+                    Title = "波動砲シェリフ開発中止したぜ★",
+                    SubTitle = "<color=#FF9631>Town Of Host-Pko v4.29.14.62</color>",
+                    ShortTitle = "<color=#FF9631>●TOH-Pko v4.29.14.62</color>",
+                    Text = "・イビルムービングの追加 From:SuperNewRoles\n"
+                    + "・チャッター君バグ修正して復活\n"
+                    + "・スタンドマスター色々仕様変更とバグ修正\n"
+                    + "・さつまといもの翻訳ミスを修正\n"
+                    + "・h r さつまといもで説明がでなかったバグの修正\n"
+                    + "・さつまといもが君臨者を視認できないように変更\n"
+                    + "・画像の変更\n"
+                    + "・その他の変更\n"
+                    ,
+                    Date = "2026-5-19"
+                };
+                AllModNews.Add(news);
+            }
             AnnouncementPopUp.UpdateState = AnnouncementPopUp.AnnounceState.NotStarted;
         }
     }

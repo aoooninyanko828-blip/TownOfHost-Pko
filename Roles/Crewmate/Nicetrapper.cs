@@ -219,15 +219,12 @@ public sealed class NiceTrapper : RoleBase
         {
             case NiceTrapperTrapType.Speed:
                 ApplySpeedEffect(target, SpeedBoost);
-                UtilsGameLog.AddGameLog("NiceTrapper", $"{UtilsName.GetPlayerColor(target)} が加速トラップを踏んだ");
                 break;
             case NiceTrapperTrapType.Slow:
                 ApplySpeedEffect(target, SpeedDown);
-                UtilsGameLog.AddGameLog("NiceTrapper", $"{UtilsName.GetPlayerColor(target)} が減速トラップを踏んだ");
                 break;
             case NiceTrapperTrapType.Notify:
                 NotifyTrapper(trap, target);
-                UtilsGameLog.AddGameLog("NiceTrapper", $"{UtilsName.GetPlayerColor(target)} が通知トラップを踏んだ");
                 break;
         }
     }

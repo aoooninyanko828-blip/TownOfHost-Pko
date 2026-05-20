@@ -81,7 +81,7 @@ public sealed class Chatter : RoleBase
         timeSinceLastChat = -9999f;
 
         Utils.SendMessage(
-            $"<color=#FFCC00><b>【=== おい!!見ろ!!あいつが!! ===】</b></color>\n{UtilsName.GetPlayerColor(Player)} が急に意識を失った。\nどうしたんだろうな。",
+            $"{UtilsName.GetPlayerColor(Player)} が急に意識を失った。\nどうしたんだろうな。",
             title: GetString("MSKillTitle"));
 
         _ = new LateTask(() =>

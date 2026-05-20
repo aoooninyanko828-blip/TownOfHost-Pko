@@ -909,6 +909,7 @@ public enum CustomRoles
     SatsumatoImo,
     SatsumatoImoC,
     SatsumatoImoM,
+    NiceTeleporter,
     //TOH-K
     Gasp,
     VentMaster,

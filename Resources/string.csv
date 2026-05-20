@@ -1886,6 +1886,7 @@
 "GodCantFixLightsOut","GodCantFixLightsOut","停電サボタージュ修理不可"
 "GodCantFixHeli","GodCantFixHeli","ヘリ(Airship)サボタージュ修理不可"
 "GodCantFixComms","GodCantFixComms","通信(コミュ)サボタージュ修理不可"
+"GodBakuro","GodBakuro","転職前に暴露するプレイヤーをキック"
 "TunaStopTime","The time from stopping until death","止まって死ぬまでの時間"
 "ShikigamiTransformButtonText","Transform","変身"
 "OnmyojiWinTaskCount","Number of tasks required to achieve victory","勝利条件に必要なタスク数"

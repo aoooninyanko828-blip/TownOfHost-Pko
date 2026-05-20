@@ -65,7 +65,7 @@ public sealed class Shyboy : RoleBase
     bool ShowNearby;
     float ShowNearbyRange;
 
-    private readonly HashSet<byte> registeredArrows = new();
+    readonly HashSet<byte> registeredArrows = new();
 
     enum OptionName
     {
@@ -75,17 +75,19 @@ public sealed class Shyboy : RoleBase
         ShyboyShowArrow,
         ShyboyArrowMatchColor,
         ShyboyShowNearby,
-        ShyboyShowNearbyRange
+        ShyboyShowNearbyRange,
     }
 
     public override bool CanClickUseVentButton => false;
 
     private static void SetupOptionItem()
     {
+        SoloWinOption.Create(RoleInfo, 9, defo: 50);
+
         OptionShytime = FloatOptionItem.Create(RoleInfo, 10, OptionName.ShyboyShytime, new(0f, 15f, 0.5f), 5f, false);
         OptionNotShy = FloatOptionItem.Create(RoleInfo, 11, OptionName.ShyboyAfterMeetingNotShytime, new(0f, 30f, 1f), 10f, false);
         OptionShyDieBom = BooleanOptionItem.Create(RoleInfo, 12, OptionName.ShyboyBooooom, false, false)
-        .SetInfo(GetString("AprilfoolOnly")).SetEnabled(() => Event.April || Event.Special);
+            .SetInfo(GetString("AprilfoolOnly")).SetEnabled(() => Event.April || Event.Special);
 
         OptionShowArrow = BooleanOptionItem.Create(RoleInfo, 13, OptionName.ShyboyShowArrow, true, false);
         OptionArrowMatchColor = BooleanOptionItem.Create(RoleInfo, 14, OptionName.ShyboyArrowMatchColor, true, false, OptionShowArrow);
@@ -105,9 +107,7 @@ public sealed class Shyboy : RoleBase
     {
         Shydeathdi = Player.Is(CustomRoles.Lighting) ? Main.DefaultImpostorVision : Main.DefaultCrewmateVision;
         if (Player.Is(CustomRoles.Sunglasses))
-        {
             Shydeathdi *= Sunglasses.SunglassesVisionmagnification.GetFloat() * 0.01f;
-        }
 
         Shydeathdi *= 4.5f;
         Shydeathdi = Mathf.Min(Shydeathdi, 4);
@@ -120,11 +120,15 @@ public sealed class Shyboy : RoleBase
         AfterMeeting = 0;
         StartGameTasks();
 
+        foreach (var id in registeredArrows)
+            TargetArrow.Remove(Player.PlayerId, id);
         registeredArrows.Clear();
     }
 
     public override void OnDestroy()
     {
+        foreach (var id in registeredArrows)
+            TargetArrow.Remove(Player.PlayerId, id);
         registeredArrows.Clear();
     }
 
@@ -175,18 +179,12 @@ public sealed class Shyboy : RoleBase
             }
 
             if (Hito)
-            {
                 Shydeath += Time.fixedDeltaTime;
-            }
             else
-            {
                 Shydeath -= Time.fixedDeltaTime * 1 / 4;
-            }
 
             if (Shydeath <= -0.25f)
-            {
                 Shydeath = 0;
-            }
 
             if (Shytime <= Shydeath)
             {
@@ -214,14 +212,12 @@ public sealed class Shyboy : RoleBase
                         }
                     }
                     if (3 <= bombcount)
-                    {
                         Achievements.RpcCompleteAchievement(Player.PlayerId, 0, achievements[3]);
-                    }
                 }
             }
         }
 
-        if (GameStates.IsInTask)
+        if (GameStates.IsInTask && ShowArrow)
         {
             var aliveIds = new HashSet<byte>(
                 PlayerCatch.AllAlivePlayerControls
@@ -229,18 +225,23 @@ public sealed class Shyboy : RoleBase
                     .Select(pc => pc.PlayerId));
 
             foreach (var id in aliveIds)
-                registeredArrows.Add(id);
+            {
+                if (registeredArrows.Add(id))
+                    TargetArrow.Add(Player.PlayerId, id);
+            }
 
             foreach (var id in registeredArrows.ToArray())
             {
                 if (!aliveIds.Contains(id))
                 {
+                    TargetArrow.Remove(Player.PlayerId, id);
                     registeredArrows.Remove(id);
                 }
             }
-
-            UtilsNotifyRoles.NotifyRoles(OnlyMeName: true);
         }
+
+        if (GameStates.IsInTask)
+            UtilsNotifyRoles.NotifyRoles(OnlyMeName: true);
     }
 
     public override string GetMark(PlayerControl seer, PlayerControl seen = null, bool isForMeeting = false)
@@ -257,18 +258,17 @@ public sealed class Shyboy : RoleBase
             var pc = PlayerCatch.GetPlayerById(id);
             if (pc == null || !pc.IsAlive()) continue;
 
-            var arr = GetArrow.GetArrows(seer, pc.transform.position);
-            if (!string.IsNullOrEmpty(arr))
+            var arr = TargetArrow.GetArrows(seer, id);
+            if (string.IsNullOrEmpty(arr)) continue;
+
+            string colorCode = "#ffffff";
+            if (ArrowMatchColor)
             {
-                string colorCode = "#ffffff";
-                if (ArrowMatchColor)
-                {
-                    int colorId = pc.Data.DefaultOutfit.ColorId;
-                    if (colorId >= 0 && colorId < Palette.PlayerColors.Length)
-                        colorCode = "#" + UnityEngine.ColorUtility.ToHtmlStringRGB(Palette.PlayerColors[colorId]);
-                }
-                arrows += $"<color={colorCode}>{arr}</color>";
+                int colorId = pc.Data.DefaultOutfit.ColorId;
+                if (colorId >= 0 && colorId < Palette.PlayerColors.Length)
+                    colorCode = "#" + UnityEngine.ColorUtility.ToHtmlStringRGB(Palette.PlayerColors[colorId]);
             }
+            arrows += $"<color={colorCode}>{arr}</color>";
         }
         return arrows;
     }
@@ -298,7 +298,7 @@ public sealed class Shyboy : RoleBase
                 string colorCode = "#ffffff";
                 if (colorId >= 0 && colorId < Palette.PlayerColors.Length)
                     colorCode = "#" + UnityEngine.ColorUtility.ToHtmlStringRGB(Palette.PlayerColors[colorId]);
-                shapes += $"<color={colorCode}>■</color>";
+                shapes += $"<size=110%><color={colorCode}>■</color></size>";
             }
         }
 
@@ -316,18 +316,19 @@ public sealed class Shyboy : RoleBase
         text = "ShyBoy_Ability";
         return true;
     }
-
     public override void CheckWinner(GameOverReason reason)
     {
-        if (Player.IsAlive())
-        {
-            if (CustomWinnerHolder.ResetAndSetAndChWinner(CustomWinner.Shyboy, Player.PlayerId))
-                CustomWinnerHolder.NeutralWinnerIds.Add(Player.PlayerId);
+        if (!Player.IsAlive()) return;
 
-            Achievements.RpcCompleteAchievement(Player.PlayerId, 0, achievements[0]);
-            if (Shytime <= 3 && Notshy <= 5)
-                Achievements.RpcCompleteAchievement(Player.PlayerId, 0, achievements[1]);
+        if (CustomWinnerHolder.ResetAndSetAndChWinner(CustomWinner.Shyboy, Player.PlayerId))
+        {
+            CustomWinnerHolder.NeutralWinnerIds.Add(Player.PlayerId);
+            CustomWinnerHolder.WinnerIds.Add(Player.PlayerId);
         }
+
+        Achievements.RpcCompleteAchievement(Player.PlayerId, 0, achievements[0]);
+        if (Shytime <= 3 && Notshy <= 5)
+            Achievements.RpcCompleteAchievement(Player.PlayerId, 0, achievements[1]);
     }
 
     public static System.Collections.Generic.Dictionary<int, Achievement> achievements = new();

@@ -511,8 +511,6 @@ public sealed class Stand : RoleBase, ILNKiller
 
         Player.SetRealKiller(owner ?? Player);
         Player.RpcMurderPlayerV2(Player);
-
-        UtilsGameLog.AddGameLog("StandMaster", $"{UtilsName.GetPlayerColor(Player)} がスタンドマスターの死亡により道連れになった");
     }
 
     void SendRPC()

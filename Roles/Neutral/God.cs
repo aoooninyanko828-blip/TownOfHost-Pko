@@ -32,6 +32,8 @@ public sealed class God : RoleBase, ISystemTypeUpdateHook, IDeathReasonSeeable
     {
     }
 
+    static OptionItem Bakuro;
+
     public static OptionItem SeeVotesOpt;
     public static OptionItem CanSeeDeathReasonOpt;
     public static OptionItem RequireTasksToWinOpt;
@@ -44,6 +46,7 @@ public sealed class God : RoleBase, ISystemTypeUpdateHook, IDeathReasonSeeable
 
     enum OptionName
     {
+        GodBakuro,
         GodSeeVotes,
         GodCanSeeDeathReason,
         GodRequireTasksToWin,
@@ -52,13 +55,16 @@ public sealed class God : RoleBase, ISystemTypeUpdateHook, IDeathReasonSeeable
         GodCantFixReactor,
         GodCantFixLightsOut,
         GodCantFixHeli,
-        GodCantFixComms
+        GodCantFixComms,
     }
 
     private static void SetupOptionItem()
     {
         SoloWinOption.Create(RoleInfo, 25007, defo: 5);
         OverrideTasksData.Create(RoleInfo, 94);
+
+        Bakuro = BooleanOptionItem.Create(RoleInfo, 25018, OptionName.GodBakuro, false, false)
+            .SetParentRole(CustomRoles.God); //本当にキックする処理も暴露を検知する処理もありません。プレイヤーにルールを守らすために見せかけで作りました。口外しないでいただけると助かります。
 
         SeeVotesOpt = BooleanOptionItem.Create(RoleInfo, 25010, OptionName.GodSeeVotes, true, false)
             .SetParentRole(CustomRoles.God);

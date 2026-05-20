@@ -1348,7 +1348,7 @@ namespace TownOfHost
             OptionNotModeJoinKick = BooleanOptionItem.Create(1_300_320, "NotModeJoinKick", false, TabGroup.MainSettings, true)
                 .SetParent(OptionJoinKick)
                 .SetColorcode("#00c1ff")
-                .SetOptionName(() => "モデレーターはキックしない");
+                .SetOptionName(() => "モデレーターはカウントしない");
 
             OptionDrawJoinKick = BooleanOptionItem.Create(1_300_330, "DrawJoinKick", false, TabGroup.MainSettings, true)
                 .SetParent(OptionJoinKick)
